@@ -1,0 +1,17 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="notification_restore_channel">Configuration restore</string>
+    <string name="notification_restore_title">Checking saved audio settings</string>
+    <string name="notification_restore_body">A limited restore attempt on each connection. Settings are not continuously enforced.</string>
+    <string name="notification_restore_pause">Pause all automatic restores</string>
+    <string name="notification_status_channel">Bluetooth audio status</string>
+    <string name="notification_status_reading">Reading Bluetooth audio status…</string>
+    <string name="notification_status_timeout">Device output unavailable: waiting for the system query to return</string>
+    <string name="notification_status_expired_retry">Device output unavailable: system query returned</string>
+    <string name="notification_unnamed_device">Unnamed device</string>
+    <string name="notification_codec_unknown">System codec #%1$d</string>
+    <string name="notification_active_unavailable">Active headphones not identified yet</string>
+    <string name="notification_audio_line">%1$s · %2$s%3$s</string>
+    <string name="notification_device_unreadable">Device output temporarily unavailable</string>
+    <string name="notification_status_read_error">Device output unavailable: %1$s</string>
+</resources>

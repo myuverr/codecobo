@@ -1,0 +1,17 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources>
+    <string name="notification_restore_channel">耳机配置恢复</string>
+    <string name="notification_restore_title">正在检查耳机保存配置</string>
+    <string name="notification_restore_body">每次连接有界恢复，不会持续锁定配置</string>
+    <string name="notification_restore_pause">暂停全部自动恢复</string>
+    <string name="notification_status_channel">蓝牙音频实时状态</string>
+    <string name="notification_status_reading">正在读取当前蓝牙音频状态…</string>
+    <string name="notification_status_timeout">实际配置暂不可读：系统查询超时，等待返回</string>
+    <string name="notification_status_expired_retry">实际配置暂不可读：系统查询已返回</string>
+    <string name="notification_unnamed_device">未命名设备</string>
+    <string name="notification_codec_unknown">系统编解码器 #%1$d</string>
+    <string name="notification_active_unavailable">暂未获取到活动耳机</string>
+    <string name="notification_audio_line">%1$s · %2$s%3$s</string>
+    <string name="notification_device_unreadable">实际配置暂不可读</string>
+    <string name="notification_status_read_error">实际配置暂不可读：%1$s</string>
+</resources>

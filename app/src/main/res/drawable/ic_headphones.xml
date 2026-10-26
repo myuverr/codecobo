@@ -1,0 +1,2 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="24" android:viewportHeight="24"><path android:fillColor="#3367D6" android:pathData="M12,2a9,9 0,0 0,-9 9v8a3,3 0,0 0,3 3h3v-9H5v-2a7,7 0,0 1,14 0v2h-4v9h3a3,3 0,0 0,3 -3v-8a9,9 0,0 0,-9 -9z"/></vector>
