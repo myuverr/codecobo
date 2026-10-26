@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MPL-2.0
+
+[versions]
+room = "2.8.5"
+
+[libraries]
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
