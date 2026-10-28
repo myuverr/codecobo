@@ -1,0 +1,37 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="page_back">Back</string>
+    <string name="page_refresh">Refresh records</string>
+    <string name="library_paused">All automatic restores paused</string>
+    <plurals name="library_enabled_count">
+        <item quantity="one">Enabled for %1$d headphone</item>
+        <item quantity="other">Enabled for %1$d headphones</item>
+    </plurals>
+    <string name="library_empty">No saved configurations yet</string>
+    <string name="library_empty_hint">Connect your headphones, choose audio settings on Home, then save.</string>
+    <string name="library_association_id">Association #%1$d</string>
+    <string name="library_association_only_hint">No saved configuration</string>
+    <string name="library_connected">Connected</string>
+    <string name="library_offline">Disconnected</string>
+    <string name="library_saved_target">Saved configuration</string>
+    <string name="library_restore_label">Automatic restore · %1$s</string>
+    <string name="library_no_saved">No saved configuration</string>
+    <string name="library_actual">Actual device output</string>
+    <string name="library_actual_last">Last device output reading</string>
+    <string name="library_actual_unknown">Not read yet</string>
+    <string name="library_edit">Edit on Home</string>
+    <string name="library_edit_offline">Connect to edit on Home</string>
+    <string name="library_gone">This record no longer exists</string>
+    <string name="library_changed">The configuration changed. Close this page and check it again.</string>
+    <string name="library_delete_question">Delete the saved configuration?</string>
+    <string name="library_pause_all">Pause all</string>
+    <string name="library_resume_all">Resume</string>
+    <string name="library_restore_next_connection">Restore each saved configuration on the next connection</string>
+    <string name="library_pause_preferences_kept">Device preferences are kept. Automatic restore is paused.</string>
+    <string name="library_restore_paused_title">Automatic restore paused</string>
+    <string name="library_restore_paused_on_hint">Saved preference: on · takes effect after resuming</string>
+    <string name="library_restore_paused_off_hint">Saved preference: off · takes effect after resuming</string>
+    <string name="library_restore_paused_description">Automatic restore is paused for all devices. %1$s</string>
+    <string name="library_offline_edit_hint">You can still view settings and change the restore preference while the device is disconnected.</string>
+    <string name="library_connection_changed">The connection changed. Wait for the status to update, then try again.</string>
+</resources>
