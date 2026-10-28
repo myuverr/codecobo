@@ -1,0 +1,40 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="notice_access_denied_fallback">Shizuku API permission was not granted. Switched to system access.</string>
+    <string name="notice_battery_settings_unavailable">Battery optimization settings unavailable</string>
+    <string name="notice_battery_settings_manual">Check this app in Android battery settings.</string>
+    <string name="notice_nearby_permission_denied">Nearby devices permission not granted</string>
+    <string name="notice_nearby_permission_manual">Allow Nearby devices in Android app permissions, then return and try again.</string>
+    <string name="notice_open_app_settings">Open app settings</string>
+    <string name="notice_cancel">Cancel</string>
+    <string name="notice_association_ui_unavailable">Cannot open device association</string>
+    <string name="notice_reopen_app_retry">Reopen the app and try again.</string>
+    <string name="notice_reconnect_retry">Reconnect your headphones and try again.</string>
+    <string name="notice_system_settings_unavailable">Android settings unavailable</string>
+    <string name="notice_system_settings_manual">Open the relevant page in Android settings manually.</string>
+    <string name="notice_close">Close</string>
+    <string name="notice_status_nearby_required">Allow Nearby devices access before enabling the status notification.</string>
+    <string name="notice_profile_operation_failed">Could not update settings. Try again.</string>
+    <string name="notice_profile_restore_failed">Could not change automatic restore. Connect your headphones and try again.</string>
+    <string name="notice_profile_read_failed">Could not read the configuration. Waiting for a status update.</string>
+    <string name="notice_access_request_failed">Shizuku API permission failed. Try again.</string>
+    <string name="notice_version_unknown">Unknown version</string>
+    <string name="notice_association_read_failed">Could not read device associations. Refresh to try again.</string>
+    <string name="notice_read_failed">Could not read records. Refresh to try again.</string>
+    <string name="notice_status_nearby_hint">"\nAllow Nearby devices access first"</string>
+    <string name="notice_status_notification_hint">"\nCheck this app in Android notification settings"</string>
+    <string name="notice_pending_codec">Codec %1$s</string>
+    <string name="notice_pending_rate">Sample rate %1$s</string>
+    <string name="notice_pending_bits">Bit depth %1$s</string>
+    <string name="notice_pending_channel">Channels %1$s</string>
+    <string name="notice_pending_quality">LDAC %1$s</string>
+    <string name="notice_unknown">Unknown</string>
+    <string name="notice_pending_save_current">Save current settings</string>
+    <string name="notice_pending_restore_enable">Automatic restore: off → on</string>
+    <string name="notice_pending_restore_disable">Automatic restore: on → off</string>
+    <string name="notice_pending_changes">Pending: %1$s</string>
+    <string name="notice_restore_paused">Automatic restore paused</string>
+    <string name="notice_summary_with_pause">%1$s; %2$s</string>
+    <string name="notice_unnamed_device">Bluetooth device · ··· %1$s</string>
+    <string name="notice_unnamed_association">Association #%1$d</string>
+</resources>
