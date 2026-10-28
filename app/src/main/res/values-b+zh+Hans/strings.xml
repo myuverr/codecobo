@@ -1,0 +1,11 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources>
+    <string name="access_mode_system">系统方式</string>
+    <string name="status_notification_hint">耳机未连接或蓝牙关闭时也保留状态通知；连接后显示实际音频参数。</string>
+    <string name="status_notification_with_error">%1$s\n%2$s</string>
+    <string name="saved_profiles_section">已保存配置</string>
+    <string name="profile_delete">删除配置</string>
+    <string name="profile_delete_explanation">删除此配置并关闭该耳机自动恢复，保留蓝牙配对。</string>
+    <string name="restore_diagnostics_copy">复制记录</string>
+    <string name="restore_diagnostics_clear">清空日志</string>
+</resources>

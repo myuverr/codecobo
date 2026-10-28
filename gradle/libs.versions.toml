@@ -5,6 +5,9 @@ room = "2.8.5"
 shizuku = "13.1.5"
 hiddenapibypass = "6.1"
 annotations = "1.3.0"
+material3 = "1.5.0-beta02"
+activity = "1.12.4"
+lottie = "6.7.1"
 
 [libraries]
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
@@ -13,3 +16,6 @@ shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
 hiddenapibypass = { module = "org.lsposed.hiddenapibypass:hiddenapibypass", version.ref = "hiddenapibypass" }
 androidx-annotations = { module = "androidx.annotation:annotation", version.ref = "annotations" }
+material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }

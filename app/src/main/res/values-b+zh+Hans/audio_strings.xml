@@ -1,0 +1,17 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources>
+    <string name="audio_rate_not_reported">未报告</string>
+    <string name="audio_rate_unknown">协商中／未知（%1$d）</string>
+    <string name="audio_bits_unknown">位深未知</string>
+    <string name="audio_channel_mono">单声道</string>
+    <string name="audio_channel_stereo">立体声</string>
+    <string name="audio_channel_unknown">声道未知</string>
+    <string name="audio_policy_default">系统默认</string>
+    <string name="audio_policy_quality">音质优先</string>
+    <string name="audio_policy_balanced">均衡</string>
+    <string name="audio_policy_connection">连接优先</string>
+    <string name="audio_policy_adaptive">自适应</string>
+    <string name="audio_policy_unknown">策略未知</string>
+    <string name="audio_field_separator">" · "</string>
+    <string name="audio_detail_suffix">" · %1$s"</string>
+</resources>

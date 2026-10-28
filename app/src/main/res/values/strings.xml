@@ -1,0 +1,13 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="app_name" translatable="false">Codecobo</string>
+    <string name="access_mode_system">System access</string>
+    <string name="access_mode_shizuku" translatable="false">Shizuku API</string>
+    <string name="status_notification_hint">Keep the status notification when headphones are disconnected or Bluetooth is off. Show actual audio settings when connected.</string>
+    <string name="status_notification_with_error">%1$s\n%2$s</string>
+    <string name="saved_profiles_section">Saved configurations</string>
+    <string name="profile_delete">Delete configuration</string>
+    <string name="profile_delete_explanation">Delete these settings and turn off automatic restore for this device. Bluetooth pairing is kept.</string>
+    <string name="restore_diagnostics_copy">Copy log</string>
+    <string name="restore_diagnostics_clear">Clear log</string>
+</resources>

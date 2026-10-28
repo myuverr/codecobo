@@ -1,0 +1,20 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
+    <string name="audio_rate_not_reported">Not reported</string>
+    <string name="audio_rate_unknown">Negotiating / unknown (%1$d)</string>
+    <string name="audio_rate_format" translatable="false">%1$s kHz</string>
+    <string name="audio_rate_unit" translatable="false">kHz</string>
+    <string name="audio_bits_format" translatable="false">%1$s bit</string>
+    <string name="audio_bits_unknown">Unknown bit depth</string>
+    <string name="audio_channel_mono">Mono</string>
+    <string name="audio_channel_stereo">Stereo</string>
+    <string name="audio_channel_unknown">Unknown channels</string>
+    <string name="audio_policy_default">System default</string>
+    <string name="audio_policy_quality">Sound quality</string>
+    <string name="audio_policy_balanced">Balanced</string>
+    <string name="audio_policy_connection">Connection stability</string>
+    <string name="audio_policy_adaptive">Adaptive</string>
+    <string name="audio_policy_unknown">Unknown policy</string>
+    <string name="audio_field_separator">" · "</string>
+    <string name="audio_detail_suffix">" · %1$s"</string>
+</resources>
