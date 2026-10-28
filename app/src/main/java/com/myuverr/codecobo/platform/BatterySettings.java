@@ -6,15 +6,17 @@ import android.content.*;
 import android.net.Uri;
 import android.os.PowerManager;
 import android.provider.Settings;
+import androidx.annotation.Nullable;
 
 public final class BatterySettings {
     private BatterySettings() {}
-    public static boolean alreadyExempt(Context context) {
+    @Nullable
+    public static Boolean alreadyExempt(Context context) {
         try {
             var power = context.getSystemService(PowerManager.class);
-            return power != null && power.isIgnoringBatteryOptimizations(context.getPackageName());
+            return power == null ? null : power.isIgnoringBatteryOptimizations(context.getPackageName());
         } catch (RuntimeException e) {
-            return false;
+            return null;
         }
     }
     public static String open(Activity activity) {
@@ -23,7 +25,8 @@ public final class BatterySettings {
         Intent request = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, own);
         Intent details = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, own);
         Intent[] candidates =
-            alreadyExempt(activity) ? new Intent[] {list, details} : new Intent[] {request, list, details};
+            Boolean.TRUE.equals(alreadyExempt(activity)) ? new Intent[] {list, details}
+                                                       : new Intent[] {request, list, details};
         String error = "";
         for (Intent intent : candidates) {
             try {

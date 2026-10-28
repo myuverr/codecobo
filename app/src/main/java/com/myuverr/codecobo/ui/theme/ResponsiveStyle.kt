@@ -87,6 +87,3 @@ internal val LocalAppTypeScale = staticCompositionLocalOf { AppTypeScale(WindowT
 
 internal val Int.adaptiveSp: TextUnit
     @Composable @ReadOnlyComposable get() = LocalAppTypeScale.current.sp(toFloat())
-
-internal val Float.adaptiveSp: TextUnit
-    @Composable @ReadOnlyComposable get() = LocalAppTypeScale.current.sp(this)

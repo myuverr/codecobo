@@ -6,3 +6,8 @@ version = 1
 path = ["app/schemas/**"]
 SPDX-FileCopyrightText = "2026 myuverr"
 SPDX-License-Identifier = "MPL-2.0"
+
+[[annotations]]
+path = ["app/src/main/res/raw/nav_*_motion.json"]
+SPDX-FileCopyrightText = ["2026 myuverr", "2023 Phosphor Icons"]
+SPDX-License-Identifier = "MPL-2.0 AND MIT"

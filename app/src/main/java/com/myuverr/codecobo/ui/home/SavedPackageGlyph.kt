@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MPL-2.0
+// SPDX-License-Identifier: MPL-2.0 AND ISC AND MIT
 
 package com.myuverr.codecobo.ui.home
 

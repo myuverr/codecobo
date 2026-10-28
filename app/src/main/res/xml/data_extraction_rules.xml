@@ -1,0 +1,11 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="." />
+        <exclude domain="database" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="." />
+        <exclude domain="database" path="." />
+    </device-transfer>
+</data-extraction-rules>

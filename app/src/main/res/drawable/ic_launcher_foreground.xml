@@ -1,0 +1,21 @@
+<!-- SPDX-License-Identifier: MPL-2.0 AND ISC AND MIT -->
+<!--
+SPDX-FileCopyrightText: 2026 myuverr
+SPDX-FileCopyrightText: 2013-2022 Cole Bemis
+SPDX-FileCopyrightText: 2022 Lucide Contributors
+Lucide headphone contour with a project-authored return contour and proportions.
+See assets/THIRD_PARTY_NOTICES.md and assets/licenses/Lucide-LICENSE.txt.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#255D56"
+        android:strokeWidth="3.69"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M31.122 60.4124V47.2104a22.878 16.974 0 0 1 45.756 0v13.202C76.878 73.6144 64.168 79.2724 48.916 76.4434Q40.2732 74.8403 33.664 70.7854 M31.122 50.9824h7.626a5.084 3.772 0 0 1 5.084 3.772v5.658a5.084 3.772 0 0 1 -5.084 3.772H36.206a5.084 3.772 0 0 1 -5.084 -3.772 M76.878 50.9824h-7.626a5.084 3.772 0 0 0 -5.084 3.772v5.658a5.084 3.772 0 0 0 5.084 3.772h2.542a5.084 3.772 0 0 0 5.084 -3.772 M43.3236 70.974 33.664 70.7854 35.6976 77.7636" />
+</vector>
