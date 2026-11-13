@@ -29,7 +29,28 @@ android {
         compose = true
     }
 
+    val keystorePath = providers.environmentVariable("CODECOBO_KEYSTORE_FILE").orNull
+    val keystorePassword = providers.environmentVariable("CODECOBO_KEYSTORE_PASSWORD").orNull
+    require((keystorePath == null) == (keystorePassword == null)) {
+        "CODECOBO_KEYSTORE_FILE and CODECOBO_KEYSTORE_PASSWORD must be provided together"
+    }
+    val suppliedSigning = keystorePath?.let { path ->
+        signingConfigs.create("release") {
+            storeFile = file(path)
+            storeType = "PKCS12"
+            storePassword = keystorePassword
+            keyAlias = "codecobo"
+            keyPassword = keystorePassword
+            enableV1Signing = false
+            enableV3Signing = true
+            enableV4Signing = false
+        }
+    }
+
     buildTypes {
+        if (suppliedSigning != null) {
+            configureEach { signingConfig = suppliedSigning }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
