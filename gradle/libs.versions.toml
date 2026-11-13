@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 
 [versions]
+agp = "9.3.1"
+kotlin = "2.2.10"
+ksp = "2.3.13"
 room = "2.8.5"
 shizuku = "13.1.5"
 hiddenapibypass = "6.1"
@@ -19,3 +22,8 @@ androidx-annotations = { module = "androidx.annotation:annotation", version.ref 
 material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

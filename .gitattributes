@@ -1,0 +1,6 @@
+# SPDX-License-Identifier: MPL-2.0
+
+* text=auto
+gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary

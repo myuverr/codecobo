@@ -11,3 +11,8 @@ SPDX-License-Identifier = "MPL-2.0"
 path = ["app/src/main/res/raw/nav_*_motion.json"]
 SPDX-FileCopyrightText = ["2026 myuverr", "2023 Phosphor Icons"]
 SPDX-License-Identifier = "MPL-2.0 AND MIT"
+
+[[annotations]]
+path = ["gradle/wrapper/gradle-wrapper.jar"]
+SPDX-FileCopyrightText = "2015 the original authors"
+SPDX-License-Identifier = "Apache-2.0"
