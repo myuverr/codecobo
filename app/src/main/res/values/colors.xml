@@ -1,4 +1,5 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <resources>
-    <color name="ic_launcher_background">#E4ECE8</color>
+    <color name="ic_launcher_primary">@android:color/system_accent1_600</color>
+    <color name="ic_launcher_container">@android:color/system_accent1_100</color>
 </resources>

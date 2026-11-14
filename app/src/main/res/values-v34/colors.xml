@@ -1,0 +1,6 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<resources>
+    <color name="ic_launcher_primary">@android:color/system_primary_light</color>
+    <color name="ic_launcher_container">@android:color/system_primary_container_light</color>
+    <color name="ic_launcher_background">@android:color/system_surface_light</color>
+</resources>

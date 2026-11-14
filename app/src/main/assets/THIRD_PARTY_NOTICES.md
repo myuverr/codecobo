@@ -26,7 +26,8 @@ https://android.googlesource.com/platform/frameworks/base/+/android-16.0.0_r1/pa
 
 ## Artwork
 
-The headphone illustration is original project artwork, licensed under MPL 2.0.
+The headphone illustration and launcher icon are original project artwork,
+licensed under MPL 2.0.
 
 Duotone icons and Regular/Fill navigation icons use Phosphor paths —
 Copyright (c) 2023 Phosphor Icons — MIT.
@@ -40,10 +41,6 @@ Lucide's accompanying Feather MIT attribution and notice are preserved.
 The package-check contour animation is project-authored using this geometry.
 
 https://github.com/lucide-icons/lucide
-
-The launcher icon adapts Lucide headphone geometry — ISC and MIT.
-Its continuous return contour and proportions are project-authored — MPL 2.0.
-Reference: 2ca852fc7d5905fab523a3c2adfe97d91a20181e
 
 Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
 

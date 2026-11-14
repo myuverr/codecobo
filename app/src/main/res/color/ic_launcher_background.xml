@@ -1,0 +1,5 @@
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- Material 3 surface on Android 13: neutral variant at tone 98. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@android:color/system_neutral2_600" android:lStar="98" />
+</selector>

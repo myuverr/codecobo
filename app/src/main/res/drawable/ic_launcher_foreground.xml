@@ -1,21 +1,27 @@
-<!-- SPDX-License-Identifier: MPL-2.0 AND ISC AND MIT -->
-<!--
-SPDX-FileCopyrightText: 2026 myuverr
-SPDX-FileCopyrightText: 2013-2022 Cole Bemis
-SPDX-FileCopyrightText: 2022 Lucide Contributors
-Lucide headphone contour with a project-authored return contour and proportions.
-See assets/THIRD_PARTY_NOTICES.md and assets/licenses/Lucide-LICENSE.txt.
--->
+<!-- SPDX-License-Identifier: MPL-2.0 -->
+<!-- SPDX-FileCopyrightText: 2026 myuverr -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#255D56"
-        android:strokeWidth="3.69"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M31.122 60.4124V47.2104a22.878 16.974 0 0 1 45.756 0v13.202C76.878 73.6144 64.168 79.2724 48.916 76.4434Q40.2732 74.8403 33.664 70.7854 M31.122 50.9824h7.626a5.084 3.772 0 0 1 5.084 3.772v5.658a5.084 3.772 0 0 1 -5.084 3.772H36.206a5.084 3.772 0 0 1 -5.084 -3.772 M76.878 50.9824h-7.626a5.084 3.772 0 0 0 -5.084 3.772v5.658a5.084 3.772 0 0 0 5.084 3.772h2.542a5.084 3.772 0 0 0 5.084 -3.772 M43.3236 70.974 33.664 70.7854 35.6976 77.7636" />
+    <path android:fillColor="@color/ic_launcher_primary"
+        android:pathData="M27.134718 63.513495A28.5 28.5 0 0 1 25.5 54A28.5 28.5 0 0 1 54 25.5A28.5 28.5 0 0 1 82.5 54A28.5 28.5 0 0 1 54 82.5A28.5 28.5 0 0 1 29.830629 69.102699L44.301543 67.348780L40.480939 72.607391A23 23 0 0 0 54 77A23 23 0 0 0 77 54A23 23 0 0 0 54 31A23 23 0 0 0 31 54A23 23 0 0 0 32.319246 61.677558Z" />
+    <group>
+        <clip-path android:pathData="M82.5 54A28.5 28.5 0 1 1 25.5 54A28.5 28.5 0 1 1 82.5 54Z" />
+        <path android:fillColor="@color/ic_launcher_primary"
+            android:pathData="M32.6 42.075H32.9A7.525 7.525 0 0 1 40.425 49.6V59.4A7.525 7.525 0 0 1 32.9 66.925H32.6A7.525 7.525 0 0 1 25.075 59.4V49.6A7.525 7.525 0 0 1 32.6 42.075Z M75.1 42.075H75.4A7.525 7.525 0 0 1 82.925 49.6V59.4A7.525 7.525 0 0 1 75.4 66.925H75.1A7.525 7.525 0 0 1 67.575 59.4V49.6A7.525 7.525 0 0 1 75.1 42.075Z" />
+        <group>
+            <clip-path android:pathData="M81.65 54A27.65 27.65 0 1 1 26.35 54A27.65 27.65 0 1 1 81.65 54Z" />
+            <path android:fillColor="@color/ic_launcher_container"
+                android:pathData="M32.6 42.925H32.9A6.675 6.675 0 0 1 39.575 49.6V59.4A6.675 6.675 0 0 1 32.9 66.075H32.6A6.675 6.675 0 0 1 25.925 59.4V49.6A6.675 6.675 0 0 1 32.6 42.925Z M75.1 42.925H75.4A6.675 6.675 0 0 1 82.075 49.6V59.4A6.675 6.675 0 0 1 75.4 66.075H75.1A6.675 6.675 0 0 1 68.425 59.4V49.6A6.675 6.675 0 0 1 75.1 42.925Z" />
+        </group>
+        <path android:fillColor="@color/ic_launcher_primary"
+            android:pathData="M36.8 46.2H36.8A2.7 2.7 0 0 1 39.5 48.9V59.9A2.7 2.7 0 0 1 36.8 62.6H36.8A2.7 2.7 0 0 1 34.1 59.9V48.9A2.7 2.7 0 0 1 36.8 46.2Z M71.2 46.2H71.2A2.7 2.7 0 0 1 73.9 48.9V59.9A2.7 2.7 0 0 1 71.2 62.6H71.2A2.7 2.7 0 0 1 68.5 59.9V48.9A2.7 2.7 0 0 1 71.2 46.2Z" />
+        <path android:fillColor="@android:color/transparent"
+            android:strokeColor="@color/ic_launcher_background"
+            android:strokeWidth="1"
+            android:strokeLineCap="round"
+            android:pathData="M28.7 49V57.4M79.3 49V57.4" />
+    </group>
 </vector>
