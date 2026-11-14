@@ -71,7 +71,6 @@ jobs:
     if: needs.changes.outputs.build == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    environment: release
     # Docs-only pushes never enter this group or cancel a running code build.
     concurrency:
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
