@@ -91,4 +91,5 @@ dependencies {
     implementation(libs.hiddenapibypass)
     compileOnly(libs.androidx.annotations)
     ksp(libs.room.compiler)
+    testImplementation(libs.junit)
 }
