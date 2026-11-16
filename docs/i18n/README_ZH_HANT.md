@@ -4,7 +4,7 @@
 
 > 在 Android 上調整藍牙音訊參數，儲存裝置設定並在重新連線時自動還原。
 
-[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/android.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/android.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#使用) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](../../LICENSE)
+[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/ci.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#使用) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](../../LICENSE)
 
 Codecobo 是一款開源的藍牙編解碼器管理工具，適用於 A2DP 耳機和喇叭。支援透過 Android 系統介面關聯裝置，也可使用 Shizuku 特權服務靜默完成關聯。
 

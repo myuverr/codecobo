@@ -4,7 +4,7 @@
 
 > Adjust Bluetooth audio settings on Android, save per-device configurations, and restore them on reconnect.
 
-[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/android.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/android.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#usage) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](LICENSE)
+[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/ci.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#usage) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](LICENSE)
 
 Codecobo is an open-source Bluetooth codec manager for A2DP headphones and speakers. Devices can be associated through Android's system interface or silently through Shizuku's privileged service.
 
