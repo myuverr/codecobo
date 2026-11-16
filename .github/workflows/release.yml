@@ -1,0 +1,121 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  actions: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  APP_NAME: Codecobo
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: ci
+        name: Find the matching CI artifact
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import json
+          import os
+          import subprocess
+
+          def api(path):
+              return json.loads(subprocess.check_output(["gh", "api", path], text=True))
+
+          sha = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          subprocess.run(["git", "merge-base", "--is-ancestor", sha, "origin/main"], check=True)
+          repo = os.environ["GITHUB_REPOSITORY"]
+          version = os.environ["GITHUB_REF_NAME"][1:]
+          runs = api(f"repos/{repo}/actions/workflows/ci.yml/runs?head_sha={sha}&status=success&per_page=100")
+          selected = None
+          for run in runs["workflow_runs"]:
+              if (run["head_sha"] != sha or run["conclusion"] != "success"
+                      or run["event"] not in ("push", "workflow_dispatch")):
+                  continue
+              artifacts = api(f"repos/{repo}/actions/runs/{run['id']}/artifacts?per_page=100")
+              matches = [a for a in artifacts["artifacts"]
+                         if not a["expired"] and a["name"].startswith(os.environ["APP_NAME"] + "-" + version + "-")
+                         and a["name"].endswith("-release")]
+              if len(matches) == 1:
+                  selected = (run["id"], matches[0]["name"])
+                  break
+          if selected is None:
+              raise SystemExit("No matching CI artifact. Complete CI for this tag, then re-run Release.")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"run_id={selected[0]}\nartifact={selected[1]}\nsource_sha={sha}\n")
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ steps.ci.outputs.artifact }}
+          run-id: ${{ steps.ci.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/publish
+          digest-mismatch: error
+      - name: Verify the release artifact
+        shell: python
+        env:
+          ARTIFACT: ${{ steps.ci.outputs.artifact }}
+          SOURCE_SHA: ${{ steps.ci.outputs.source_sha }}
+        run: |
+          import hashlib
+          import json
+          import os
+          import pathlib
+
+          directory = pathlib.Path(os.environ["RUNNER_TEMP"]) / "publish"
+          metadata = json.loads((directory / "release.json").read_text())
+          apk = directory / (os.environ["ARTIFACT"] + ".apk")
+          if (metadata["source_sha"] != os.environ["SOURCE_SHA"]
+                  or metadata["version"] != os.environ["GITHUB_REF_NAME"][1:]
+                  or metadata["apk"] != apk.name):
+              raise SystemExit("CI artifact does not match the release tag")
+          digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+          if digest != metadata["sha256"]:
+              raise SystemExit("Release APK checksum mismatch")
+          (directory / (apk.name + ".sha256")).write_text(digest + "  " + apk.name + "\n")
+      - name: Publish the Release APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT: ${{ steps.ci.outputs.artifact }}
+          SOURCE_SHA: ${{ steps.ci.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          verify_tag() {
+            local current
+            current="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq '.sha')"
+            if [[ "$current" != "$SOURCE_SHA" ]]; then
+              echo "::error::Release tag no longer matches the CI source"
+              return 1
+            fi
+          }
+          verify_tag
+          cd "$RUNNER_TEMP/publish"
+          apk="$ARTIFACT.apk"
+          version="${GITHUB_REF_NAME#v}"
+          flags=()
+          if [[ "$version" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" \
+            --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
+            --title "Codecobo $version" --generate-notes "${flags[@]}"
+          verify_tag
+          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false

@@ -1,10 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
-name: Android
+name: CI
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -44,6 +43,8 @@ jobs:
           import re
           import subprocess
 
+          if subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", "origin/main"]).returncode != 0:
+              raise SystemExit("CI source must belong to main history")
           build = True
           before = os.environ.get("BEFORE", "")
           if (os.environ["GITHUB_EVENT_NAME"] == "push"
@@ -75,10 +76,6 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
       cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    outputs:
-      version: ${{ steps.apks.outputs.version }}
-      prefix: ${{ steps.apks.outputs.prefix }}
-      source_sha: ${{ steps.apks.outputs.source_sha }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -120,6 +117,8 @@ jobs:
         name: Verify and name APKs
         shell: python
         run: |
+          import hashlib
+          import json
           import os
           import pathlib
           import re
@@ -165,8 +164,13 @@ jobs:
           target.mkdir()
           for variant, apk in apks.items():
               shutil.copyfile(apk, target / (prefix + "-" + variant + ".apk"))
+          release_apk = target / (prefix + "-release.apk")
+          (target / "release.json").write_text(json.dumps({
+              "source_sha": source_sha, "version": version, "apk": release_apk.name,
+              "sha256": hashlib.sha256(release_apk.read_bytes()).hexdigest(),
+          }) + "\n")
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write("version=" + version + "\nprefix=" + prefix + "\nsource_sha=" + source_sha + "\n")
+              output.write("prefix=" + prefix + "\n")
       - name: Retain Debug APK
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -178,7 +182,9 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.apks.outputs.prefix }}-release
-          path: ${{ runner.temp }}/apks/${{ steps.apks.outputs.prefix }}-release.apk
+          path: |
+            ${{ runner.temp }}/apks/${{ steps.apks.outputs.prefix }}-release.apk
+            ${{ runner.temp }}/apks/release.json
           if-no-files-found: error
           retention-days: 14
       - name: Retain Lint reports and R8 mapping
@@ -191,46 +197,3 @@ jobs:
             app/build/outputs/mapping/release/
           if-no-files-found: ignore
           retention-days: 90
-
-  publish:
-    needs: build
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: ${{ needs.build.outputs.prefix }}-release
-          path: ${{ runner.temp }}/publish
-          digest-mismatch: error
-      - name: Publish verified Release APK
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ needs.build.outputs.version }}
-          PREFIX: ${{ needs.build.outputs.prefix }}
-          SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
-        run: |
-          set -euo pipefail
-          verify_tag() {
-            local current
-            current="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq '.sha')"
-            if [[ "$current" != "$SOURCE_SHA" || "$GITHUB_REF_NAME" != "v$VERSION" ]]; then
-              echo "::error::Release tag no longer matches the built source"
-              return 1
-            fi
-          }
-          verify_tag
-          cd "$RUNNER_TEMP/publish"
-          apk="$PREFIX-release.apk"
-          sha256sum "$apk" > "$apk.sha256"
-          flags=()
-          if [[ "$VERSION" == *-* ]]; then
-            flags+=(--prerelease)
-          fi
-          gh release create "$GITHUB_REF_NAME" "$apk" "$apk.sha256" \
-            --repo "$GITHUB_REPOSITORY" --verify-tag --draft \
-            --title "Codecobo $VERSION" --generate-notes "${flags[@]}"
-          verify_tag
-          gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --draft=false

@@ -4,7 +4,7 @@
 
 > Ajusta el audio Bluetooth en Android, guarda una configuración para cada dispositivo y restáurala al volver a conectarlo.
 
-[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/android.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/android.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#uso) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](../../LICENSE)
+[![Android CI](https://github.com/myuverr/codecobo/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/myuverr/codecobo/actions/workflows/ci.yml) [![Android 13+](https://img.shields.io/badge/Android-13%2B-3DDC84?logo=android&logoColor=white)](#uso) [![MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-blue)](../../LICENSE)
 
 Codecobo es una herramienta de código abierto para gestionar los códecs Bluetooth de auriculares y altavoces A2DP. Los dispositivos pueden asociarse desde la interfaz del sistema de Android o de forma silenciosa mediante el servicio privilegiado de Shizuku.
 
