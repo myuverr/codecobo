@@ -4,6 +4,18 @@ name: CI
 on:
   push:
     branches: [main]
+    # Skip only paths the APK build does not use.
+    # If CI starts using an ignored path, remove its exclusion in the same PR.
+    paths-ignore:
+      - 'docs/**'
+      - README.md
+      - TODO.md
+      - .github/PULL_REQUEST_TEMPLATE.md
+      - .github/dependabot.yml
+      - .github/renovate.json5
+      - .github/workflows/pr.yml
+      - .github/workflows/release.yml
+      - .github/workflows/renovate.yml
   workflow_dispatch:
 
 permissions:
@@ -22,64 +34,24 @@ env:
   SIGNING_CERT_SHA256: 60dd70662aee751b76c6258817a8929acda8a6545558f74dcfcce6051c9ffded
 
 jobs:
-  changes:
+  build:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      build: ${{ steps.changes.outputs.build }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-      - id: changes
-        name: Check commit messages
-        shell: python
-        env:
-          BEFORE: ${{ github.event.before }}
-        run: |
-          import os
-          import re
-          import subprocess
-
-          if subprocess.run(["git", "merge-base", "--is-ancestor", "HEAD", "origin/main"]).returncode != 0:
-              raise SystemExit("CI source must belong to main history")
-          build = True
-          before = os.environ.get("BEFORE", "")
-          if (os.environ["GITHUB_EVENT_NAME"] == "push"
-                  and os.environ["GITHUB_REF"] == "refs/heads/main"
-                  and re.fullmatch(r"[0-9a-f]{40}", before)
-                  and before != "0" * 40
-                  and subprocess.run(["git", "merge-base", "--is-ancestor", before, "HEAD"],
-                                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0):
-              log = subprocess.check_output([
-                  "git", "log", "--no-show-signature", "--max-count=129",
-                  "--format=%B%x00", before + "..HEAD"
-              ]).decode("utf-8", "surrogateescape")
-              messages = [m.strip() for m in log.split("\0") if m.strip()]
-              build = not (0 < len(messages) <= 128 and all(
-                  re.match(r"docs(?:\([^)]+\))?:[ \t]+\S", m.splitlines()[0], re.IGNORECASE)
-                  and not re.search(r"^BREAKING(?: CHANGE|-CHANGE):[ \t]", m, re.MULTILINE)
-                  for m in messages
-              ))
-          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
-              output.write("build=" + str(build).lower() + "\n")
-          print("Build required:", build)
-
-  build:
-    needs: changes
-    if: needs.changes.outputs.build == 'true'
-    runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Docs-only pushes never enter this group or cancel a running code build.
     concurrency:
       group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
       cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          fetch-depth: 0
           persist-credentials: false
+      - name: Verify main history
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::CI source must belong to main history"
+            exit 1
+          fi
       - uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           distribution: temurin
