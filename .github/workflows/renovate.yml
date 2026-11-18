@@ -1,0 +1,49 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Gradle Updates
+
+on:
+  schedule:
+    - cron: '23 5 * * 2'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency: gradle-updates
+
+jobs:
+  renovate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '25'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install Android SDK packages
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-37.0" "build-tools;36.0.0" < <(yes)
+      - name: Install Renovate
+        run: npm install --prefix "$RUNNER_TEMP/renovate" --no-audit --no-fund renovate@44.251.0
+      - name: Create Renovate token
+        id: token
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.RENOVATE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Propose Gradle updates
+        env:
+          RENOVATE_TOKEN: ${{ steps.token.outputs.token }}
+          RENOVATE_BINARY_SOURCE: global
+          RENOVATE_ALLOWED_UNSAFE_EXECUTIONS: gradleWrapper
+          RENOVATE_ONBOARDING: 'false'
+        run: |
+          export RENOVATE_CUSTOM_ENV_VARIABLES
+          RENOVATE_CUSTOM_ENV_VARIABLES="$(jq -nc --arg home "$ANDROID_HOME" '{ANDROID_HOME: $home}')"
+          "$RUNNER_TEMP/renovate/node_modules/.bin/renovate" "$GITHUB_REPOSITORY"
