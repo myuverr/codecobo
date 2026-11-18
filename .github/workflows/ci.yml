@@ -24,7 +24,7 @@ env:
 jobs:
   changes:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       build: ${{ steps.changes.outputs.build }}
@@ -70,7 +70,7 @@ jobs:
   build:
     needs: changes
     if: needs.changes.outputs.build == 'true'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     # Docs-only pushes never enter this group or cancel a running code build.
     concurrency:
