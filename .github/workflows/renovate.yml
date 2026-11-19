@@ -3,7 +3,7 @@ name: Gradle Updates
 
 on:
   schedule:
-    - cron: '23 5 * * 2'
+    - cron: '23 5 * * *'
   workflow_dispatch:
 
 permissions: {}
@@ -44,8 +44,8 @@ jobs:
           RENOVATE_ALLOWED_UNSAFE_EXECUTIONS: gradleWrapper
           RENOVATE_ALLOWED_COMMANDS: >-
             ^[.]/gradlew --no-daemon --no-configuration-cache
-            --write-verification-metadata sha256 testDebugUnitTest
-            lintDebug lintRelease assembleDebug assembleRelease$
+            --refresh-dependencies --write-verification-metadata sha256
+            testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease$
           RENOVATE_ONBOARDING: 'false'
         run: |
           export RENOVATE_CUSTOM_ENV_VARIABLES

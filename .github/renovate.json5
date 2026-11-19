@@ -13,7 +13,7 @@
       "postUpgradeTasks": {
         "executionMode": "branch",
         "commands": [
-          "./gradlew --no-daemon --no-configuration-cache --write-verification-metadata sha256 testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease"
+          "./gradlew --no-daemon --no-configuration-cache --refresh-dependencies --write-verification-metadata sha256 testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease"
         ],
         "fileFilters": ["gradle/verification-metadata.xml"]
       }
