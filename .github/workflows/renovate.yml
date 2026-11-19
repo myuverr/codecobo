@@ -3,7 +3,7 @@ name: Gradle Updates
 
 on:
   schedule:
-    - cron: '23 5 * * 2'
+    - cron: '23 5 * * *'
   workflow_dispatch:
 
 permissions: {}
