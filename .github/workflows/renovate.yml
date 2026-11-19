@@ -2,8 +2,6 @@
 name: Gradle Updates
 
 on:
-  schedule:
-    - cron: '23 5 * * *'
   workflow_dispatch:
 
 permissions: {}
@@ -12,7 +10,7 @@ concurrency: gradle-updates
 
 jobs:
   renovate:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/debug/renovate'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -39,6 +37,7 @@ jobs:
           permission-pull-requests: write
       - name: Propose Gradle updates
         env:
+          LOG_LEVEL: debug
           RENOVATE_TOKEN: ${{ steps.token.outputs.token }}
           RENOVATE_BINARY_SOURCE: global
           RENOVATE_ALLOWED_UNSAFE_EXECUTIONS: gradleWrapper
