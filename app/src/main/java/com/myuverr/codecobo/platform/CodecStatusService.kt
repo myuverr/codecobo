@@ -76,10 +76,6 @@ class CodecStatusService : Service() {
             if (!foreground) stopSelfResult(startId)
             return START_NOT_STICKY
         }
-        if (intent?.action == STOP) {
-            stopCurrent("")
-            return START_NOT_STICKY
-        }
         if (closed || !StatusNotifications.enabled(this)) {
             stopSelfResult(startId)
             return START_NOT_STICKY
@@ -393,7 +389,6 @@ class CodecStatusService : Service() {
     }
 
     companion object {
-        const val STOP = "com.myuverr.codecobo.STOP_STATUS"
         const val REFRESH = "com.myuverr.codecobo.REFRESH_STATUS"
         private const val MIN_READ_INTERVAL = 500L
         private val RETRY_DELAYS = longArrayOf(500, 1500, 3000)
