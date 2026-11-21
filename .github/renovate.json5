@@ -5,18 +5,41 @@
   "enabledManagers": ["gradle", "gradle-wrapper"],
   "automerge": false,
   "prConcurrentLimit": 3,
+  "rebaseWhen": "conflicted",
   "semanticCommits": "enabled",
   "semanticCommitType": "build",
   "packageRules": [
     {
+      "matchManagers": ["gradle"],
+      // The shared script writes locks and verification metadata together.
+      "skipArtifactsUpdate": true
+    },
+    {
       "matchManagers": ["gradle", "gradle-wrapper"],
       "postUpgradeTasks": {
         "executionMode": "branch",
-        "commands": [
-          "./gradlew --no-daemon --no-configuration-cache --refresh-dependencies --write-verification-metadata sha256 testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease"
-        ],
-        "fileFilters": ["gradle/verification-metadata.xml"]
+        "commands": ["bash .github/scripts/update-gradle-artifacts.sh"],
+        "fileFilters": ["**/*.lockfile", "gradle/verification-metadata.xml"]
       }
+    },
+    {
+      "matchManagers": ["gradle"],
+      "matchDepTypes": ["dependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchNewValue": "/^[0-9]+(\\.[0-9]+)+$/",
+      "groupName": "Gradle libraries"
+    },
+    {
+      "matchManagers": ["gradle"],
+      "matchDepTypes": ["plugin"],
+      "matchDepNames": [
+        "com.android.*",
+        "org.jetbrains.kotlin.*",
+        "com.google.devtools.ksp"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchNewValue": "/^[0-9]+(\\.[0-9]+)+$/",
+      "groupName": "Android build toolchain"
     }
   ]
 }

@@ -43,10 +43,7 @@ jobs:
           RENOVATE_TOKEN: ${{ steps.token.outputs.token }}
           RENOVATE_BINARY_SOURCE: global
           RENOVATE_ALLOWED_UNSAFE_EXECUTIONS: gradleWrapper
-          RENOVATE_ALLOWED_COMMANDS: >-
-            ^[.]/gradlew --no-daemon --no-configuration-cache
-            --refresh-dependencies --write-verification-metadata sha256
-            testDebugUnitTest lintDebug lintRelease assembleDebug assembleRelease$
+          RENOVATE_ALLOWED_COMMANDS: '^bash [.]github/scripts/update-gradle-artifacts[.]sh$'
           RENOVATE_ONBOARDING: 'false'
         run: |
           export RENOVATE_CUSTOM_ENV_VARIABLES
