@@ -24,7 +24,6 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.navigation3.runtime.NavKey
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -35,14 +34,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
-import com.myuverr.codecobo.ui.settings.SettingsRoute
 
-internal enum class TopLevelPage(
-    val route: NavKey, val title: Int, val icon: Int, val selectedIcon: Int, val motion: Int,
-) {
-    CONTROL(Control, R.string.home_nav_control, R.drawable.ic_nav_home, R.drawable.ic_nav_home_selected, R.raw.nav_house_motion),
-    HEADPHONES(Library, R.string.home_nav_headphones, R.drawable.ic_nav_library, R.drawable.ic_nav_library_selected, R.raw.nav_books_motion),
-    SETTINGS(SettingsRoute.ROOT, R.string.home_nav_settings, R.drawable.ic_nav_settings, R.drawable.ic_nav_settings_selected, R.raw.nav_gear_six_motion),
+internal enum class TopLevelPage(val title: Int, val icon: Int, val selectedIcon: Int, val motion: Int) {
+    CONTROL(R.string.home_nav_control, R.drawable.ic_nav_home, R.drawable.ic_nav_home_selected, R.raw.nav_house_motion),
+    HEADPHONES(R.string.home_nav_headphones, R.drawable.ic_nav_library, R.drawable.ic_nav_library_selected, R.raw.nav_books_motion),
+    SETTINGS(R.string.home_nav_settings, R.drawable.ic_nav_settings, R.drawable.ic_nav_settings_selected, R.raw.nav_gear_six_motion),
 }
 
 @Composable

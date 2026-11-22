@@ -2,6 +2,9 @@
 
 package com.myuverr.codecobo.ui
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.displayCutout
@@ -10,17 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
@@ -36,10 +42,7 @@ import com.myuverr.codecobo.ui.theme.CodecTheme
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data object Control : NavKey
-
-@Serializable
-internal data object Library : NavKey
+internal data object MainTabs : NavKey
 
 @Serializable
 private data class LicenseText(val file: String) : NavKey
@@ -52,15 +55,11 @@ internal fun AppNavigation(
     refreshManagement: () -> Unit,
     edit: (String) -> Boolean,
 ) {
-    val backStack = rememberNavBackStack(Control)
+    val backStack = rememberNavBackStack(MainTabs)
+    var selectedTab by rememberSaveable { mutableStateOf(TopLevelPage.CONTROL) }
     val currentRoute = backStack.last()
-    val selectedTab = currentRoute.topLevelPage()
+    val showingTabs = currentRoute == MainTabs
     val overlay = remember { FloatingOverlayState() }
-
-    fun replaceStack(vararg routes: NavKey) {
-        backStack.clear()
-        backStack.addAll(routes)
-    }
 
     fun goBack() {
         // Two back events can arrive before NavDisplay observes that the root is active.
@@ -69,61 +68,81 @@ internal fun AppNavigation(
         backStack.removeAt(backStack.lastIndex)
     }
 
-    val activeSection = if (currentRoute is DeviceKey) Library else backStack.first()
+    val activeSection = if (currentRoute is DeviceKey) TopLevelPage.HEADPHONES else selectedTab
     LaunchedEffect(activeSection) {
-        if (activeSection == SettingsRoute.ROOT) settings.refreshLanguageFacts()
-        if (activeSection != Control) refreshManagement()
+        if (activeSection == TopLevelPage.SETTINGS) settings.refreshLanguageFacts()
+        if (activeSection != TopLevelPage.CONTROL) refreshManagement()
     }
 
-    CodecTheme(navigationOverlay = overlay.takeIf { selectedTab != null }) {
+    val settingsPage: @Composable (SettingsRoute) -> Unit = { route ->
+        settings.Content(
+            route,
+            onBack = ::goBack,
+            onNavigate = { backStack.add(it) },
+            onOpenRecord = { address, id -> backStack.add(DeviceKey(address, id)) },
+            onOpenLicense = { backStack.add(LicenseText(it)) },
+        )
+    }
+
+    CodecTheme(navigationOverlay = overlay.takeIf { showingTabs }) {
         val direction = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
-        val density = LocalDensity.current
-        val tabOffset = with(density) { 32.dp.roundToPx() } * direction
-        val childOffset = with(density) { 20.dp.roundToPx() } * direction
-        val tabSpring = MaterialTheme.motionScheme.fastSpatialSpec<IntOffset>()
+        val childOffset = with(LocalDensity.current) { 20.dp.roundToPx() } * direction
+        val lastTab = TopLevelPage.entries.lastIndex.toFloat()
+        val target = selectedTab.ordinal.toFloat()
+        val animatedPosition = animateFloatAsState(
+            target,
+            animationSpec = if (showingTabs) {
+                // Keep pace with the capsule's initial travel without overshooting a page.
+                spring(stiffness = 1600f, visibilityThreshold = 0.001f)
+            } else snap(),
+            label = "tab-strip-position",
+        )
+        val tabPosition = remember(animatedPosition, lastTab) {
+            derivedStateOf { animatedPosition.value.coerceIn(0f, lastTab) }
+        }
+
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.displayCutout))) {
             NavDisplay(
                 backStack = backStack,
                 modifier = Modifier.fillMaxSize().clipToBounds(),
                 onBack = ::goBack,
-                transitionSpec = { forwardNavigationTransition(tabOffset, childOffset, tabSpring) },
+                transitionSpec = { forwardNavigationTransition(childOffset) },
                 popTransitionSpec = { backNavigationTransition(childOffset) },
                 predictivePopTransitionSpec = { backNavigationTransition(childOffset) },
                 entryProvider = entryProvider {
-                    entry(Control, metadata = Control.tabMotionMetadata()) {
-                        home.Content {
-                            replaceStack(SettingsRoute.ROOT, SettingsRoute.ACCESS)
+                    entry(MainTabs) {
+                        TopLevelTrack(selectedTab.takeIf { showingTabs }, tabPosition) { page ->
+                            when (page) {
+                                TopLevelPage.CONTROL -> home.Content {
+                                    selectedTab = TopLevelPage.SETTINGS
+                                    backStack.add(SettingsRoute.ACCESS)
+                                }
+                                TopLevelPage.HEADPHONES -> library.Root { backStack.add(it) }
+                                TopLevelPage.SETTINGS -> settingsPage(SettingsRoute.ROOT)
+                            }
                         }
-                    }
-                    entry(Library, metadata = Library.tabMotionMetadata()) {
-                        library.Root { backStack.add(it) }
                     }
                     entry<DeviceKey> { device ->
                         library.Details(device, onBack = ::goBack) { address ->
-                            if (edit(address)) replaceStack(Control)
+                            if (edit(address)) {
+                                selectedTab = TopLevelPage.CONTROL
+                                backStack.subList(1, backStack.size).clear()
+                            }
                         }
                     }
-                    entry<SettingsRoute>(metadata = { it.tabMotionMetadata() }) { page ->
-                        settings.Content(
-                            page,
-                            onBack = ::goBack,
-                            onNavigate = { backStack.add(it) },
-                            onOpenRecord = { address, id -> backStack.add(DeviceKey(address, id)) },
-                            onOpenLicense = { backStack.add(LicenseText(it)) },
-                        )
-                    }
+                    entry<SettingsRoute> { settingsPage(it) }
                     entry<LicenseText> { license ->
                         AssetTextScreen("licenses/${license.file}", ShippedLicenses.getValue(license.file), ::goBack)
                     }
                 },
             )
-            if (selectedTab != null) {
+            if (showingTabs) {
                 AppNavigationBar(
                     selectedTab,
                     Modifier.align(Alignment.BottomCenter)
                         .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
                         .onSizeChanged { overlay.navigationMeasured(it.height) },
-                    onSelected = { replaceStack(it.route) },
+                    onSelected = { selectedTab = it },
                 )
             }
         }
