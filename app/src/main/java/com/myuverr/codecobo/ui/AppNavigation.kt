@@ -25,14 +25,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.myuverr.codecobo.ui.components.FloatingOverlayState
 import com.myuverr.codecobo.ui.library.DeviceKey
 import com.myuverr.codecobo.ui.settings.AssetTextScreen
@@ -85,8 +83,6 @@ internal fun AppNavigation(
     }
 
     CodecTheme(navigationOverlay = overlay.takeIf { showingTabs }) {
-        val direction = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
-        val childOffset = with(LocalDensity.current) { 20.dp.roundToPx() } * direction
         val lastTab = TopLevelPage.entries.lastIndex.toFloat()
         val target = selectedTab.ordinal.toFloat()
         val animatedPosition = animateFloatAsState(
@@ -102,23 +98,30 @@ internal fun AppNavigation(
         }
 
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.displayCutout))) {
-            NavDisplay(
-                backStack = backStack,
-                modifier = Modifier.fillMaxSize().clipToBounds(),
-                onBack = ::goBack,
-                transitionSpec = { forwardNavigationTransition(childOffset) },
-                popTransitionSpec = { backNavigationTransition(childOffset) },
-                predictivePopTransitionSpec = { backNavigationTransition(childOffset) },
-                entryProvider = entryProvider {
+            val entries = rememberDecoratedNavEntries(
+                backStack,
+                listOf(rememberSaveableStateHolderNavEntryDecorator()),
+                entryProvider {
                     entry(MainTabs) {
-                        TopLevelTrack(selectedTab.takeIf { showingTabs }, tabPosition) { page ->
-                            when (page) {
-                                TopLevelPage.CONTROL -> home.Content {
-                                    selectedTab = TopLevelPage.SETTINGS
-                                    backStack.add(SettingsRoute.ACCESS)
+                        Box(Modifier.fillMaxSize()) {
+                            TopLevelTrack(selectedTab.takeIf { showingTabs }, tabPosition) { page ->
+                                when (page) {
+                                    TopLevelPage.CONTROL -> home.Content {
+                                        selectedTab = TopLevelPage.SETTINGS
+                                        backStack.add(SettingsRoute.ACCESS)
+                                    }
+                                    TopLevelPage.HEADPHONES -> library.Root { backStack.add(it) }
+                                    TopLevelPage.SETTINGS -> settingsPage(SettingsRoute.ROOT)
                                 }
-                                TopLevelPage.HEADPHONES -> library.Root { backStack.add(it) }
-                                TopLevelPage.SETTINGS -> settingsPage(SettingsRoute.ROOT)
+                            }
+                            if (showingTabs) {
+                                AppNavigationBar(
+                                    selectedTab,
+                                    Modifier.align(Alignment.BottomCenter)
+                                        .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
+                                        .onSizeChanged { overlay.navigationMeasured(it.height) },
+                                    onSelected = { selectedTab = it },
+                                )
                             }
                         }
                     }
@@ -136,15 +139,7 @@ internal fun AppNavigation(
                     }
                 },
             )
-            if (showingTabs) {
-                AppNavigationBar(
-                    selectedTab,
-                    Modifier.align(Alignment.BottomCenter)
-                        .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
-                        .onSizeChanged { overlay.navigationMeasured(it.height) },
-                    onSelected = { selectedTab = it },
-                )
-            }
+            ChildNavigationDisplay(entries, ::goBack, Modifier.fillMaxSize().clipToBounds())
         }
     }
 }
