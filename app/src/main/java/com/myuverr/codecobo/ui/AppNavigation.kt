@@ -10,12 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
@@ -48,7 +54,7 @@ internal fun AppNavigation(
 ) {
     val backStack = rememberNavBackStack(Control)
     val currentRoute = backStack.last()
-    val selectedTab = TopLevelPage.entries.firstOrNull { it.route == currentRoute }
+    val selectedTab = currentRoute.topLevelPage()
     val overlay = remember { FloatingOverlayState() }
 
     fun replaceStack(vararg routes: NavKey) {
@@ -70,18 +76,26 @@ internal fun AppNavigation(
     }
 
     CodecTheme(navigationOverlay = overlay.takeIf { selectedTab != null }) {
+        val direction = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
+        val density = LocalDensity.current
+        val tabOffset = with(density) { 32.dp.roundToPx() } * direction
+        val childOffset = with(density) { 20.dp.roundToPx() } * direction
+        val tabSpring = MaterialTheme.motionScheme.fastSpatialSpec<IntOffset>()
         Box(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars.union(WindowInsets.displayCutout))) {
             NavDisplay(
                 backStack = backStack,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().clipToBounds(),
                 onBack = ::goBack,
+                transitionSpec = { forwardNavigationTransition(tabOffset, childOffset, tabSpring) },
+                popTransitionSpec = { backNavigationTransition(childOffset) },
+                predictivePopTransitionSpec = { backNavigationTransition(childOffset) },
                 entryProvider = entryProvider {
-                    entry(Control) {
+                    entry(Control, metadata = Control.tabMotionMetadata()) {
                         home.Content {
                             replaceStack(SettingsRoute.ROOT, SettingsRoute.ACCESS)
                         }
                     }
-                    entry(Library) {
+                    entry(Library, metadata = Library.tabMotionMetadata()) {
                         library.Root { backStack.add(it) }
                     }
                     entry<DeviceKey> { device ->
@@ -89,7 +103,7 @@ internal fun AppNavigation(
                             if (edit(address)) replaceStack(Control)
                         }
                     }
-                    entry<SettingsRoute> { page ->
+                    entry<SettingsRoute>(metadata = { it.tabMotionMetadata() }) { page ->
                         settings.Content(
                             page,
                             onBack = ::goBack,
