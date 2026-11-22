@@ -39,7 +39,6 @@ internal fun CodecTheme(
     val configuration = LocalConfiguration.current
     val window = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current.density
-    // Scale from the window; the navigation ComposeView is only a toolbar high.
     val width = if (window.width > 0) window.width / density else configuration.screenWidthDp.toFloat()
     val height = if (window.height > 0) window.height / density else configuration.screenHeightDp.toFloat()
     val tier = WindowTier.forWindow(width, height)

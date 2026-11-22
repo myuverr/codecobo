@@ -3,6 +3,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
 }
 
@@ -84,6 +85,8 @@ ksp {
 dependencies {
     implementation(libs.material3)
     implementation(libs.activity.compose)
+    implementation(libs.navigation3.runtime)
+    implementation(libs.navigation3.ui)
     implementation(libs.room.runtime)
     implementation(libs.lottie.compose)
     implementation(libs.shizuku.api)

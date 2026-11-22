@@ -2,12 +2,16 @@
 
 package com.myuverr.codecobo.ui.library
 
+import androidx.navigation3.runtime.NavKey
 import com.myuverr.codecobo.controller.ScreenState
 import com.myuverr.codecobo.core.DeviceProfile
 import com.myuverr.codecobo.platform.BluetoothRepository.Snapshot
 import com.myuverr.codecobo.ui.management.*
 
-data class DeviceKey(val address: String?, val associationId: Int? = null)
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class DeviceKey(val address: String?, val associationId: Int? = null) : NavKey
 
 internal data class DeviceDetail(
     val key: DeviceKey,

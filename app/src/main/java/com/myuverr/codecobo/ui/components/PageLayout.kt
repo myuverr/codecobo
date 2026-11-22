@@ -36,7 +36,7 @@ internal fun PageLayout(
                 TopAppBar(
                     title = { Text(title, Modifier.semantics { heading() }, fontSize = 25.adaptiveSp,
                         lineHeight = 32.adaptiveSp, fontWeight = FontWeight.SemiBold) },
-                    // MainActivity owns system-bar and cutout insets.
+                    // The app shell already applies system-bar and cutout insets.
                     windowInsets = WindowInsets(0, 0, 0, 0),
                     navigationIcon = {
                         if (onBack != null) IconButton(onBack) {

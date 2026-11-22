@@ -1,6 +1,0 @@
-<!-- SPDX-License-Identifier: MPL-2.0 -->
-<resources>
-    <item type="id" name="home_compose" />
-    <item type="id" name="library_compose" />
-    <item type="id" name="settings_compose" />
-</resources>

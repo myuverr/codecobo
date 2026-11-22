@@ -3,11 +3,17 @@
 package com.myuverr.codecobo.ui.settings
 
 import android.os.LocaleList
+import androidx.navigation3.runtime.NavKey
 import com.myuverr.codecobo.controller.ScreenState
 import com.myuverr.codecobo.ui.StatusNotificationControl
 import com.myuverr.codecobo.ui.management.ManagementData
 
-enum class SettingsRoute { ROOT, ACCESS, RECORDS, DIAGNOSTICS, ABOUT, LICENSES, LICENSE_TEXT, PROJECT_LICENSE, NOTICES, PRIVACY }
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal enum class SettingsRoute : NavKey {
+    ROOT, ACCESS, RECORDS, DIAGNOSTICS, ABOUT, LICENSES, PROJECT_LICENSE, NOTICES, PRIVACY,
+}
 
 internal data class SettingsState(
     val connection: ScreenState? = null,
