@@ -8,12 +8,24 @@ import com.myuverr.codecobo.core.CodecCapability
 import com.myuverr.codecobo.core.CodecRequest
 import com.myuverr.codecobo.core.CodecRules
 
+internal val CodecCapability.rates get() = CodecRules.rates(sampleRateMask())
+internal val CodecCapability.bits get() = AudioParameters.bits(bitsPerSampleMask())
+internal val CodecCapability.channels get() = AudioParameters.channels(channelModeMask())
+internal val CodecCapability.qualities get() = AudioParameters.policies(type())
+
+internal data class ParameterSelection(
+    val sampleRate: Int?,
+    val bitsPerSample: Int?,
+    val channelMode: Int?,
+    val ldacQuality: Long?,
+)
+
+/** Keeps preferred audio parameters, not the temporary fallbacks shown by the picker. */
 internal data class HomeEditor(
     val deviceAddress: String? = null,
     val codecType: Int? = null,
     val sampleRate: Int? = null,
     val revision: Long = -1,
-    // Null is unreconciled; zero is explicitly unspecified.
     val bitsPerSample: Int? = null,
     val channelMode: Int? = null,
     val ldacQuality: Long? = null,
@@ -25,57 +37,64 @@ internal data class HomeEditor(
         val current = if (invalidated) HomeEditor(deviceAddress = address, revision = screen.editorRevision())
             else copy(revision = screen.editorRevision())
         if (address == null) return current.clearParameters()
+        if (current.codecType != null) return current
         val snapshot = screen.snapshot() ?: return current
-        val capabilities = snapshot.capabilities()
-        if (capabilities.isEmpty()) return current
-        val capability = capabilities.find { it.type() == current.codecType }
-            ?: capabilities.find { it.type() == snapshot.actual().type() }
-            ?: return current.clearParameters()
-        val sameCodec = current.codecType == capability.type()
-        val actual = snapshot.actual().takeIf { it.type() == capability.type() }
-        val rate = (if (sameCodec) current.sampleRate else actual?.sampleRate())?.takeIf {
-            CodecRules.valid(CodecRequest(capability.type(), it), capabilities)
-        }
-        val bits = (if (sameCodec) current.bitsPerSample else null) ?: actual?.bitsPerSample() ?: 0
-        val channel = (if (sameCodec) current.channelMode else null) ?: actual?.channelMode() ?: 0
-        val quality = (if (sameCodec) current.ldacQuality else null) ?: actual?.ldacQuality() ?: 0
-        return current.copy(codecType = capability.type(), sampleRate = rate,
-            bitsPerSample = bits.takeIf { AudioParameters.single(it, capability.bitsPerSampleMask() and 7) } ?: 0,
-            channelMode = channel.takeIf { AudioParameters.single(it, capability.channelModeMask() and 3) } ?: 0,
-            ldacQuality = quality.takeIf { capability.type() == 4 && AudioParameters.policyKnown(it) } ?: 0)
+        if (snapshot.capabilities().isEmpty()) return current
+        val actual = snapshot.actual()
+        return current.copy(
+            codecType = actual.type(),
+            sampleRate = actual.sampleRate(),
+            bitsPerSample = actual.bitsPerSample(),
+            channelMode = actual.channelMode(),
+            ldacQuality = actual.ldacQuality(),
+        )
     }
+
+    fun capability(capabilities: List<CodecCapability>): CodecCapability? {
+        val preferred = codecType ?: return null
+        return capabilities.firstOrNull { it.type() == preferred } ?: capabilities.firstOrNull()
+    }
+
+    fun selection(capability: CodecCapability): ParameterSelection = ParameterSelection(
+        capability.rates.select(sampleRate),
+        capability.bits.select(bitsPerSample),
+        capability.channels.select(channelMode),
+        capability.qualities.select(ldacQuality?.takeIf(AudioParameters::policyKnown)?.toInt())?.toLong(),
+    )
 
     fun clearParameters() = copy(codecType = null, sampleRate = null,
         bitsPerSample = null, channelMode = null, ldacQuality = null)
 
     fun selectCodec(type: Int, capabilities: List<CodecCapability>): HomeEditor {
-        if (type == codecType) return this
-        val capability = capabilities.find { it.type() == type } ?: return this
-        return copy(codecType = type, sampleRate = CodecRules.rates(capability.sampleRateMask()).firstOrNull(),
-            bitsPerSample = AudioParameters.bits(capability.bitsPerSampleMask()).singleOrNull() ?: 0,
-            channelMode = AudioParameters.channels(capability.channelModeMask()).singleOrNull() ?: 0,
-            ldacQuality = 0)
+        if (type == codecType || capabilities.none { it.type() == type }) return this
+        return copy(codecType = type)
     }
     fun selectRate(rate: Int, capabilities: List<CodecCapability>): HomeEditor {
-        if (rate == sampleRate || codecType == null) return this
-        if (!CodecRules.valid(CodecRequest(codecType, rate), capabilities)) return this
-        return copy(sampleRate = rate)
+        val capability = capability(capabilities) ?: return this
+        return if (rate in capability.rates) copy(sampleRate = rate) else this
     }
     fun selectBits(bits: Int, capabilities: List<CodecCapability>): HomeEditor {
-        val capability = capabilities.find { it.type() == codecType } ?: return this
-        return if (bits in AudioParameters.bits(capability.bitsPerSampleMask())) copy(bitsPerSample = bits) else this
+        val capability = capability(capabilities) ?: return this
+        return if (bits in capability.bits) copy(bitsPerSample = bits) else this
     }
     fun selectChannel(channel: Int, capabilities: List<CodecCapability>): HomeEditor {
-        val capability = capabilities.find { it.type() == codecType } ?: return this
-        return if (channel in AudioParameters.channels(capability.channelModeMask())) copy(channelMode = channel) else this
+        val capability = capability(capabilities) ?: return this
+        return if (channel in capability.channels) copy(channelMode = channel) else this
     }
-    fun selectQuality(quality: Int): HomeEditor =
-        if (quality in AudioParameters.policies(codecType ?: -1)) copy(ldacQuality = quality.toLong()) else this
+    fun selectQuality(quality: Int, capabilities: List<CodecCapability>): HomeEditor {
+        val capability = capability(capabilities) ?: return this
+        return if (quality in capability.qualities) copy(ldacQuality = quality.toLong()) else this
+    }
 
     fun request(capabilities: List<CodecCapability>): CodecRequest? {
-        val type = codecType ?: return null
-        val rate = sampleRate ?: return null
-        return CodecRequest(type, rate, bitsPerSample ?: 0, channelMode ?: 0, ldacQuality ?: 0)
+        val capability = capability(capabilities) ?: return null
+        val selected = selection(capability)
+        val rate = selected.sampleRate ?: return null
+        return CodecRequest(capability.type(), rate, selected.bitsPerSample ?: 0,
+            selected.channelMode ?: 0, selected.ldacQuality ?: 0)
             .takeIf { CodecRules.valid(it, capabilities) }
     }
 }
+
+private fun <T> List<T>.select(preferred: T?): T? =
+    preferred?.takeIf { it in this } ?: firstOrNull()

@@ -38,7 +38,7 @@ internal class HomePanel(private val actions: Actions) {
             onRestoreChanged = ::setRestore,
             onBitsSelected = { value -> editParameters { it.selectBits(value, state.capabilities) } },
             onChannelSelected = { value -> editParameters { it.selectChannel(value, state.capabilities) } },
-            onQualitySelected = { value -> editParameters { it.selectQuality(value) } },
+            onQualitySelected = { value -> editParameters { it.selectQuality(value, state.capabilities) } },
         )
     }
 
