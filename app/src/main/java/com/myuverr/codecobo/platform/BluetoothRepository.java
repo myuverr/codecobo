@@ -228,14 +228,15 @@ public final class BluetoothRepository implements AutoCloseable {
         if (selectable != null)
             for (BluetoothCodecConfig c : selectable) {
                 caps.add(new CodecCapability(
-                    c.getCodecType(), name(c), c.getSampleRate(), c.getBitsPerSample(), c.getChannelMode()));
+                    c.getCodecType(), CodecNames.name(context, c),
+                    c.getSampleRate(), c.getBitsPerSample(), c.getChannelMode()));
             }
         return new Snapshot(new CodecState(actual.getCodecType(), actual.getSampleRate(),
                                 actual.getBitsPerSample(), actual.getChannelMode(),
                                 actual.getCodecType() == BluetoothCodecConfig.SOURCE_CODEC_TYPE_LDAC
                                     ? actual.getCodecSpecific1()
                                     : -1),
-            name(actual), CodecRules.merge(caps));
+            CodecNames.name(context, actual), CodecRules.merge(caps));
     }
     public ApplyEngine.Device operation(String address, java.util.function.BooleanSupplier current) {
         return new ApplyEngine.Device() {
@@ -300,21 +301,6 @@ public final class BluetoothRepository implements AutoCloseable {
         if (p == null)
             throw new IllegalStateException("Waiting for A2DP service");
         return p;
-    }
-    private String name(BluetoothCodecConfig config) {
-        // Use the platform name for extended codec types.
-        if (android.os.Build.VERSION.SDK_INT >= 35 && config.getExtendedCodecType() != null)
-            return config.getExtendedCodecType().getCodecName();
-        return switch (config.getCodecType()) {
-            case 0 -> "SBC";
-            case 1 -> "AAC";
-            case 2 -> "aptX";
-            case 3 -> "aptX HD";
-            case 4 -> "LDAC";
-            case 5 -> "LC3";
-            case 6 -> "Opus";
-            default -> context.getString(R.string.notification_codec_unknown, config.getCodecType());
-        };
     }
     @Override
     public void close() {
