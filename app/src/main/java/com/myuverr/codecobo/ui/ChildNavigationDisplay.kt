@@ -60,31 +60,35 @@ internal fun ChildNavigationDisplay(
                 swipe = BackSwipe(event.swipeEdge)
                 state.seekTo(event.progress * PreviewFraction, previous)
             }
-        } else {
-            when {
-                swipe == null -> state.animateTo(current)
-                current == state.currentState -> {
-                    // Rewind the same scene pair so the underlay stays in place until covered.
-                    val underlay = state.targetState
-                    if (state.fraction > 0f) {
-                        val progress = Animatable(state.fraction)
-                        coroutineScope {
-                            launch { progress.animateTo(0f, tween(180)) }
-                            snapshotFlow { progress.value }.takeWhile { it > 0f }.collect {
-                                state.seekTo(it, underlay)
-                            }
-                        }
-                    }
-                    state.snapTo(current)
-                }
-                else -> {
-                    swipe = swipe?.copy(releaseFraction = state.fraction)
-                    state.animateTo(current, tween(280, easing = PredictiveExitEasing))
-                }
-            }
-            swipe = null
+            return@LaunchedEffect
         }
+
+        val activeSwipe = swipe
+        when {
+            activeSwipe == null -> state.animateTo(current)
+            current == state.currentState -> state.rewindPreview()
+            else -> {
+                swipe = activeSwipe.copy(releaseFraction = state.fraction)
+                state.animateTo(current, tween(280, easing = PredictiveExitEasing))
+            }
+        }
+        swipe = null
     }
 
     transition.AnimatedChildContent(swipe, modifier.background(MaterialTheme.colorScheme.scrim))
+}
+
+private suspend fun <S> SeekableTransitionState<S>.rewindPreview() {
+    val foreground = currentState
+    val underlay = targetState
+    val releaseFraction = fraction
+    // Rewind the same scene pair so the underlay stays in place until covered.
+    if (releaseFraction > 0f) {
+        val progress = Animatable(releaseFraction)
+        coroutineScope {
+            launch { progress.animateTo(0f, tween(180)) }
+            snapshotFlow { progress.value }.takeWhile { it > 0f }.collect { seekTo(it, underlay) }
+        }
+    }
+    snapTo(foreground)
 }

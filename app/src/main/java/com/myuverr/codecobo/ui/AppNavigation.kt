@@ -85,18 +85,17 @@ internal fun AppNavigation(
     }
 
     CodecTheme(navigationOverlay = overlay.takeIf { showingTabs }) {
-        val lastTab = TopLevelPage.entries.lastIndex.toFloat()
-        val target = selectedTab.ordinal.toFloat()
+        val maxTabPosition = TopLevelPage.entries.lastIndex.toFloat()
         val animatedPosition = animateFloatAsState(
-            target,
+            selectedTab.ordinal.toFloat(),
             animationSpec = if (showingTabs) {
                 // Keep pace with the capsule's initial travel without overshooting a page.
                 spring(stiffness = 1600f, visibilityThreshold = 0.001f)
             } else snap(),
             label = "tab-strip-position",
         )
-        val tabPosition = remember(animatedPosition, lastTab) {
-            derivedStateOf { animatedPosition.value.coerceIn(0f, lastTab) }
+        val tabPosition = remember(animatedPosition, maxTabPosition) {
+            derivedStateOf { animatedPosition.value.coerceIn(0f, maxTabPosition) }
         }
 
         val outerInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)

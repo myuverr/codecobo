@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
@@ -43,6 +44,8 @@ import kotlin.math.roundToInt
 
 internal const val PreviewFraction = 0.4f
 private const val PredictiveDuration = 400
+private const val PushDuration = 280
+private const val PopDuration = 220
 private const val UnderlayAlpha = 0.8f
 private val ChildEasing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 
@@ -67,15 +70,16 @@ internal fun Transition<Scene<NavKey>>.AnimatedChildContent(swipe: BackSwipe?, m
                     enter togetherWith ExitTransition.KeepUntilTransitionsFinished
                 }
                 depth < initialState.previousEntries.size -> {
-                    val enter = fadeIn(tween(220, easing = ChildEasing), initialAlpha = UnderlayAlpha)
-                    val exit = slideOutHorizontally(tween(220, easing = ChildEasing)) { direction * it } +
+                    val enter = fadeIn(tween(PopDuration, easing = ChildEasing), initialAlpha = UnderlayAlpha)
+                    val exit = slideOutHorizontally(tween(PopDuration, easing = ChildEasing)) { direction * it } +
                         ExitTransition.KeepUntilTransitionsFinished
                     enter togetherWith exit
                 }
                 else -> {
-                    val enter = slideInHorizontally(tween(280, easing = ChildEasing)) { direction * it }
-                    val exit = slideOutHorizontally(tween(280, easing = ChildEasing)) { (-direction * it * 0.22f).roundToInt() } +
-                        fadeOut(tween(280, easing = ChildEasing), targetAlpha = UnderlayAlpha) +
+                    val slide = tween<IntOffset>(PushDuration, easing = ChildEasing)
+                    val enter = slideInHorizontally(slide) { direction * it }
+                    val exit = slideOutHorizontally(slide) { (-direction * it * 0.22f).roundToInt() } +
+                        fadeOut(tween(PushDuration, easing = ChildEasing), targetAlpha = UnderlayAlpha) +
                         ExitTransition.KeepUntilTransitionsFinished
                     enter togetherWith exit
                 }
@@ -89,11 +93,12 @@ internal fun Transition<Scene<NavKey>>.AnimatedChildContent(swipe: BackSwipe?, m
         ) { phase ->
             if (phase == EnterExitState.PostExit && swipe != null) 1f else 0f
         }
-        val surface = if (swipe == null) Modifier else Modifier.graphicsLayer {
+        val predictiveTransform = if (swipe == null) Modifier else Modifier.graphicsLayer {
             // Once released, keep the preview's scale and corner radius while the same layer slides out.
             val exitStart = swipe.releaseFraction ?: PreviewFraction
-            val preview = minOf(progress.value, exitStart) / PreviewFraction
-            val exit = ((progress.value - exitStart) / (1f - exitStart)).coerceIn(0f, 1f)
+            val fraction = progress.value
+            val preview = minOf(fraction, exitStart) / PreviewFraction
+            val exit = ((fraction - exitStart) / (1f - exitStart)).coerceIn(0f, 1f)
             val swipeDirection = if (swipe.edge == NavigationEvent.EDGE_RIGHT) -1 else 1
             translationX = swipeDirection * (24.dp.toPx() * preview + size.width * exit)
             scaleX = 1f - 0.14f * preview
@@ -103,7 +108,12 @@ internal fun Transition<Scene<NavKey>>.AnimatedChildContent(swipe: BackSwipe?, m
             clip = preview > 0f
         }
         // Paint behind the transparent status bar as part of the same layer as the page.
-        Box(Modifier.fillMaxSize().then(surface).background(pageSurface).windowInsetsPadding(topInsets)) {
+        Box(
+            Modifier.fillMaxSize()
+                .then(predictiveTransform)
+                .background(pageSurface)
+                .windowInsetsPadding(topInsets),
+        ) {
             scene.content()
         }
     }

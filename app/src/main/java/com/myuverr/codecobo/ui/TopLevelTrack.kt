@@ -32,7 +32,10 @@ internal fun TopLevelTrack(
                     .clearAndSetSemantics { hideFromAccessibility() }
                     .pointerInput(Unit) {
                         awaitPointerEventScope {
-                            while (true) awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                            while (true) {
+                                val event = awaitPointerEvent(PointerEventPass.Initial)
+                                event.changes.forEach { it.consume() }
+                            }
                         }
                     }
                 Box(interaction.focusProperties {
