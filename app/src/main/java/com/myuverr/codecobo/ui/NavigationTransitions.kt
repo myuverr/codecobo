@@ -17,8 +17,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -30,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.scene.Scene
 import androidx.navigationevent.NavigationEvent
+import com.myuverr.codecobo.ui.theme.LocalPageSurface
 import kotlin.math.roundToInt
 
 internal const val PreviewFraction = 0.4f
@@ -42,6 +51,8 @@ internal data class BackSwipe(val edge: Int, val releaseFraction: Float? = null)
 @Composable
 internal fun Transition<Scene<NavKey>>.AnimatedChildContent(swipe: BackSwipe?, modifier: Modifier) {
     val direction = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
+    val topInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Top)
+    val pageSurface = LocalPageSurface.current.value
     AnimatedContent(
         modifier = modifier,
         contentKey = { it.key },
@@ -91,6 +102,9 @@ internal fun Transition<Scene<NavKey>>.AnimatedChildContent(swipe: BackSwipe?, m
             shape = RoundedCornerShape(24.dp * preview)
             clip = preview > 0f
         }
-        Box(Modifier.fillMaxSize().then(surface)) { scene.content() }
+        // Paint behind the transparent status bar as part of the same layer as the page.
+        Box(Modifier.fillMaxSize().then(surface).background(pageSurface).windowInsetsPadding(topInsets)) {
+            scene.content()
+        }
     }
 }

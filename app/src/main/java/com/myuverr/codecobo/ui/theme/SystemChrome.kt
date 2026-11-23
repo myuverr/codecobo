@@ -6,18 +6,20 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.res.Configuration
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import android.os.Build
 import android.view.WindowInsetsController
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 fun prepareWindowTheme(activity: Activity) {
+    WindowCompat.setDecorFitsSystemWindows(activity.window, false)
     val systemDark = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
         Configuration.UI_MODE_NIGHT_YES
     val dark = AppearanceStore.read(activity).isDark(systemDark)
@@ -42,9 +44,8 @@ private fun applyWindowTheme(activity: Activity, dark: Boolean, surface: Color) 
     val mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS or
         WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
     window.insetsController?.setSystemBarsAppearance(if (dark) 0 else mask, mask)
-    // Older windows draw their own system-bar backgrounds.
     if (Build.VERSION.SDK_INT < 35) {
-        window.statusBarColor = surface.toArgb()
+        window.statusBarColor = android.graphics.Color.TRANSPARENT
         window.navigationBarColor = surface.toArgb()
     }
 }
