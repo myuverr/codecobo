@@ -46,7 +46,7 @@ internal fun NavigationSelectionIndicator(slot: Rect?, viewport: IntSize) {
 }
 
 @Composable
-internal fun NavigationPulsingGlyph(page: MainNavigation.Page, selected: Boolean, content: @Composable (Modifier) -> Unit) {
+internal fun NavigationPulsingGlyph(page: TopLevelPage, selected: Boolean, content: @Composable (Modifier) -> Unit) {
     val scale = remember { Animatable(1f) }
     var previous by remember { mutableStateOf(selected) }
     LaunchedEffect(selected) {
