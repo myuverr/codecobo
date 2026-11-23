@@ -56,13 +56,15 @@ internal fun TargetConfiguration(
     onQualitySelected: (Int) -> Unit,
 ) {
     val audio = AudioText(LocalResources.current)
-    val connection = state.connection ?: return
+    if (state.connection == null) return
+    val actual = state.actual
+    val selection = state.selection
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(17.dp)) {
         Column(Modifier.testTag("codec-group"), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             ParameterHeading(stringResource(R.string.home_codec)) { ChoiceLegend() }
             ParameterChoices(
                 "codec", state.capabilities.map { ParameterOption(it.type(), it.name()) },
-                state.editor.codecType, connection.snapshot()?.actual()?.type(),
+                state.selectedCodecType, actual?.type(),
                 state.canEditDraft, onCodecSelected,
             )
         }
@@ -70,20 +72,19 @@ internal fun TargetConfiguration(
             ParameterHeading(stringResource(R.string.home_rate))
             ParameterChoices(
                 "rate", state.rates.map { ParameterOption(it, audio.rateValue(it)) },
-                state.editor.sampleRate, connection.snapshot()?.actual()?.sampleRate(),
+                selection?.sampleRate, actual?.sampleRate(),
                 state.canEditDraft, onRateSelected,
             )
         }
-        val actual = connection.snapshot()?.actual()?.takeIf { it.type() == state.editor.codecType }
         if (state.bits.size > 1) ExtendedParameterGroup(
             "bits", stringResource(R.string.home_bits), state.bits.map { ParameterOption(it, audio.bitsLabel(it)) },
-            state.editor.bitsPerSample, actual?.bitsPerSample(), state.canEditDraft, onBitsSelected)
+            selection?.bitsPerSample, actual?.bitsPerSample(), state.canEditDraft, onBitsSelected)
         if (state.channels.size > 1) ExtendedParameterGroup(
             "channel", stringResource(R.string.home_channel), state.channels.map { ParameterOption(it, audio.channelLabel(it)) },
-            state.editor.channelMode, actual?.channelMode(), state.canEditDraft, onChannelSelected)
+            selection?.channelMode, actual?.channelMode(), state.canEditDraft, onChannelSelected)
         if (state.qualities.isNotEmpty()) ExtendedParameterGroup(
             "quality", stringResource(R.string.home_quality), state.qualities.map { ParameterOption(it, audio.policyLabel(it.toLong())) },
-            state.editor.ldacQuality?.takeIf { AudioParameters.policyKnown(it) }?.toInt(),
+            selection?.ldacQuality?.toInt(),
             actual?.ldacQuality()?.takeIf { AudioParameters.policyKnown(it) }?.toInt(), state.canEditDraft, onQualitySelected)
     }
 }

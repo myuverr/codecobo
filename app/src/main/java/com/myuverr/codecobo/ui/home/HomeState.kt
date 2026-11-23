@@ -23,12 +23,15 @@ internal data class HomeState(
 ) {
     data class SavedDraft(val address: String, val request: CodecRequest)
 
+    val actual get() = connection?.snapshot()?.actual()
     val capabilities get() = connection?.snapshot()?.capabilities().orEmpty()
-    private val selectedCapability get() = capabilities.find { it.type() == editor.codecType }
-    val rates get() = selectedCapability?.let { CodecRules.rates(it.sampleRateMask()) }.orEmpty()
-    val bits get() = com.myuverr.codecobo.core.AudioParameters.bits(selectedCapability?.bitsPerSampleMask() ?: 0)
-    val channels get() = com.myuverr.codecobo.core.AudioParameters.channels(selectedCapability?.channelModeMask() ?: 0)
-    val qualities get() = com.myuverr.codecobo.core.AudioParameters.policies(editor.codecType ?: -1)
+    private val selectedCapability get() = editor.capability(capabilities)
+    val selectedCodecType get() = selectedCapability?.type()
+    val selection get() = selectedCapability?.let(editor::selection)
+    val rates get() = selectedCapability?.rates.orEmpty()
+    val bits get() = selectedCapability?.bits.orEmpty()
+    val channels get() = selectedCapability?.channels.orEmpty()
+    val qualities get() = selectedCapability?.qualities.orEmpty()
     val busy get() = connection?.busy() == true
     val changingDevice get() = editor.deviceAddress != null && editor.deviceAddress != connection?.selectedAddress()
     val canEditDraft get() = !changingDevice && connection?.canEdit() == true
@@ -83,11 +86,11 @@ internal data class HomeState(
         var unavailable = savedDraftUnavailable && sameEditor
         var nextEditor = if (unavailable) editor else editor.reconcile(value)
         var pending = pendingSaved
-        val available = value.snapshot()?.capabilities().orEmpty()
+        val snapshot = value.snapshot()
         pending?.let { draft ->
             if (draft.address != value.selectedAddress()) pending = null
-            else if (available.isNotEmpty()) {
-                if (CodecRules.valid(draft.request, available)) {
+            else if (snapshot != null && snapshot.capabilities().isNotEmpty()) {
+                if (CodecRules.valid(draft.request, snapshot.capabilities())) {
                     pending = null
                     nextEditor = nextEditor.copy(codecType = draft.request.type(), sampleRate = draft.request.sampleRate(),
                         bitsPerSample = draft.request.bitsPerSample(), channelMode = draft.request.channelMode(),
