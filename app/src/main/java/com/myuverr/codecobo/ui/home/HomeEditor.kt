@@ -50,8 +50,10 @@ internal data class HomeEditor(
         )
     }
 
-    fun capability(capabilities: List<CodecCapability>): CodecCapability? =
-        capabilities.firstOrNull { it.type() == codecType } ?: capabilities.firstOrNull()
+    fun capability(capabilities: List<CodecCapability>): CodecCapability? {
+        val preferred = codecType ?: return null
+        return capabilities.firstOrNull { it.type() == preferred } ?: capabilities.firstOrNull()
+    }
 
     fun selection(capability: CodecCapability): ParameterSelection = ParameterSelection(
         capability.rates.select(sampleRate),
