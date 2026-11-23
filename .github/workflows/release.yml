@@ -23,6 +23,7 @@ jobs:
     permissions:
       contents: write
       actions: read
+      attestations: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -91,6 +92,17 @@ jobs:
           if digest != metadata["sha256"]:
               raise SystemExit("Release APK checksum mismatch")
           (directory / (apk.name + ".sha256")).write_text(digest + "  " + apk.name + "\n")
+      - name: Verify APK build provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT: ${{ steps.ci.outputs.artifact }}
+          SOURCE_SHA: ${{ steps.ci.outputs.source_sha }}
+        run: |
+          gh attestation verify "$RUNNER_TEMP/publish/$ARTIFACT.apk" \
+            --repo "$GITHUB_REPOSITORY" \
+            --signer-workflow "$GITHUB_REPOSITORY/.github/workflows/ci.yml" \
+            --source-digest "$SOURCE_SHA" \
+            --deny-self-hosted-runners
       - name: Publish the Release APK
         env:
           GH_TOKEN: ${{ github.token }}
