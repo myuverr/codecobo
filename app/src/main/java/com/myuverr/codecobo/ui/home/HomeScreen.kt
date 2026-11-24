@@ -2,10 +2,9 @@
 
 package com.myuverr.codecobo.ui.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.annotation.StringRes
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -13,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -115,6 +115,13 @@ private fun OfflineHome(state: HomeState, modifier: Modifier, onOpenBluetooth: (
     val connection = state.connection
     val type = LocalAppTypeScale.current
     val clearance = LocalFloatingNavigationClearance.current
+    val permitted = connection?.bluetoothPermission() == true
+    // Still starting up, or nothing can be read without nearby-device access.
+    val loading = connection == null || (state.busy && permitted)
+    if (permitted && !state.busy) {
+        DisconnectedHome(modifier, onOpenBluetooth)
+        return
+    }
     Box(modifier.fillMaxWidth().testTag("offline-viewport"), contentAlignment = Alignment.TopCenter) {
         FloatingScrollContent(clearance + 12.dp) {
             Column(
@@ -122,55 +129,62 @@ private fun OfflineHome(state: HomeState, modifier: Modifier, onOpenBluetooth: (
                     .padding(horizontal = type.gutter).padding(top = 7.dp, bottom = clearance + 24.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                when {
-                    connection == null || (state.busy && connection.bluetoothPermission()) ->
-                        ConnectionStage(stringResource(R.string.home_loading_title), stringResource(R.string.home_loading_hint))
-                    !connection.bluetoothPermission() ->
-                        ConnectionStage(stringResource(R.string.home_permission_title), stringResource(R.string.home_permission_hint), stringResource(R.string.home_permissions), onOpenSettings)
-                    else -> {
-                        ConnectionStage(stringResource(R.string.home_disconnected), stringResource(R.string.home_disconnected_hint), stringResource(R.string.home_bluetooth), onOpenBluetooth, external = true)
-                        ConnectionGuide()
-                    }
+                if (loading) ConnectionStage(
+                    stringResource(R.string.home_loading_title), stringResource(R.string.home_loading_hint)
+                ) else ConnectionStage(
+                    stringResource(R.string.home_permission_title), stringResource(R.string.home_permission_hint),
+                    stringResource(R.string.home_permissions), onOpenSettings,
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DisconnectedHome(modifier: Modifier, onOpenBluetooth: () -> Unit) {
+    val type = LocalAppTypeScale.current
+    // Barely-there brand tint: the artwork should read before the backdrop does.
+    val backdrop = lerp(LocalPageSurface.current.value, MaterialTheme.colorScheme.primary, .12f)
+    BoxWithConstraints(
+        modifier.fillMaxWidth().testTag("offline-viewport")
+            .padding(bottom = LocalFloatingNavigationClearance.current),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        val midpoint = maxHeight / 2
+        // Square backdrop spanning two thirds of the column.
+        val backdropSize = (minOf(maxWidth, type.offlineMaxWidth) - type.gutter * 2) * 2f / 3f
+        Column(
+            Modifier.widthIn(max = type.offlineMaxWidth).fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = type.gutter).padding(bottom = type.gutter),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(type.gutter),
+        ) {
+            // The artwork closes the upper half; the label and action start the lower half.
+            Box(Modifier.heightIn(min = midpoint), contentAlignment = Alignment.BottomCenter) {
+                Box(
+                    Modifier.size(backdropSize).background(backdrop, MaterialShapes.Cookie4Sided.toShape()),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    HeadphoneIllustration(
+                        Modifier.padding(type.gutter).aspectRatio(HeadphoneArtworkAspectRatio),
+                        centerInk = true,
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ConnectionGuide() {
-    Column(Modifier.fillMaxWidth().testTag("connection-guide"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            stringResource(R.string.home_guide_heading),
-            modifier = Modifier.semantics { heading() },
-            fontSize = 14.adaptiveSp, lineHeight = 20.adaptiveSp, fontWeight = FontWeight.SemiBold,
-        )
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            ConnectionGuideStep(1, R.string.home_guide_connect_title, R.string.home_guide_connect_hint)
-            ConnectionGuideStep(2, R.string.home_guide_parameters_title, R.string.home_guide_parameters_hint)
-            ConnectionGuideStep(3, R.string.home_guide_save_title, R.string.home_guide_save_hint)
-        }
-    }
-}
-
-@Composable
-private fun ConnectionGuideStep(number: Int, @StringRes title: Int, @StringRes description: Int) {
-    val colors = MaterialTheme.colorScheme
-    Row(
-        Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Surface(shape = CircleShape, color = colors.secondaryContainer, contentColor = colors.onSecondaryContainer) {
-            Box(
-                Modifier.defaultMinSize(minWidth = 28.dp, minHeight = 28.dp).padding(horizontal = 8.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(stringResource(R.string.home_guide_step_number, number), fontSize = 12.adaptiveSp, lineHeight = 16.adaptiveSp)
+            Text(
+                stringResource(R.string.home_disconnected),
+                Modifier.semantics { heading() },
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Button(onOpenBluetooth, Modifier.heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.home_bluetooth), Modifier.weight(1f, fill = false), textAlign = TextAlign.Center)
+                Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                Icon(painterResource(R.drawable.ic_home_external), null, Modifier.size(ButtonDefaults.IconSize))
             }
-        }
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-            Text(stringResource(title), fontSize = 13.adaptiveSp, lineHeight = 20.adaptiveSp, fontWeight = FontWeight.Medium)
-            Text(stringResource(description), fontSize = 11.adaptiveSp, lineHeight = 17.adaptiveSp, color = colors.onSurfaceVariant)
         }
     }
 }
@@ -187,7 +201,7 @@ internal fun ReadPreparation(onOpenSettings: () -> Unit) {
 }
 
 @Composable
-private fun ConnectionStage(title: String, description: String, action: String? = null, onAction: () -> Unit = {}, external: Boolean = false) {
+private fun ConnectionStage(title: String, description: String, action: String? = null, onAction: () -> Unit = {}) {
     val tint = LocalWorkbenchColors.current
     val visual = LocalAppTypeScale.current.factor
     Surface(modifier = Modifier.testTag("connection-stage"), color = tint.tint, contentColor = tint.onTint, shape = RoundedCornerShape(32.dp, 32.dp, 46.dp, 17.dp)) {
@@ -205,12 +219,7 @@ private fun ConnectionStage(title: String, description: String, action: String? 
             if (action != null) {
                 Spacer(Modifier.height(22.dp))
                 Button(onAction, Modifier.heightIn(min = 48.dp)) {
-                    Text(action, modifier = if (external) Modifier.weight(1f, fill = false) else Modifier, fontSize = 14.adaptiveSp)
-                    if (external) {
-                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                        Icon(painterResource(R.drawable.ic_home_external), null,
-                            Modifier.size(ButtonDefaults.IconSize).testTag("bluetooth-settings-external"))
-                    }
+                    Text(action, fontSize = 14.adaptiveSp)
                 }
             }
         }
