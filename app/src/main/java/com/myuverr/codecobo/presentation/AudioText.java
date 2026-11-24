@@ -94,4 +94,10 @@ public final class AudioText {
         String text = details(value);
         return text.isEmpty() ? "" : resources.getString(R.string.audio_detail_suffix, text);
     }
+
+    /** A codec name followed by the reported rate and details, with localized separators. */
+    public String codecLine(String codecName, CodecState value) {
+        return codecName + resources.getString(R.string.audio_field_separator)
+            + rate(value.sampleRate()) + suffix(value);
+    }
 }

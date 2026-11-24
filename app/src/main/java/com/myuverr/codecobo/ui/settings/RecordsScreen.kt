@@ -30,7 +30,7 @@ internal fun RecordsScreen(state: SettingsState, onBack: () -> Unit, onRefresh: 
                     SettingRow(
                         record.name?.takeIf { it.isNotBlank() } ?: record.address?.let { stringResource(R.string.notice_unnamed_device, it.takeLast(5)) }
                             ?: stringResource(R.string.library_association_id, record.id),
-                        stringResource(if (data.profiles.any { it.address().equals(record.address, true) }) R.string.settings_record_saved else R.string.library_association_only_hint) +
+                        stringResource(if (data.profiles.any { it.address().equals(record.address, true) }) R.string.settings_record_saved else R.string.library_no_saved) +
                             if (data.associations.count { it.name == record.name } > 1)
                                 " · ··· " + (record.address?.takeLast(5) ?: record.id.toString()) else "",
                         R.drawable.ic_home_headphones, onClick = { onOpen(record) },

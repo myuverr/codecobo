@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.R
@@ -121,6 +122,7 @@ internal class LibraryPanel(private val context: Context, private val actions: A
         val unchanged = current?.revision() == requested.revision()
         val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
         val scope = rememberCoroutineScope()
+        val colors = MaterialTheme.colorScheme
         ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(stringResource(R.string.library_delete_question), style = MaterialTheme.typography.titleLarge)
@@ -128,7 +130,15 @@ internal class LibraryPanel(private val context: Context, private val actions: A
                 Button(
                     onConfirm, Modifier.fillMaxWidth().testTag("confirm-delete"),
                     enabled = unchanged && state.connection?.busy() != true,
-                ) { Text(stringResource(R.string.profile_delete)) }
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.error,
+                        contentColor = colors.onError,
+                    ),
+                ) {
+                    Icon(painterResource(R.drawable.ic_action_delete), null, Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.profile_delete))
+                }
                 TextButton({ scope.launch { sheetState.hide(); onDismiss() } }, Modifier.fillMaxWidth()) {
                     Text(stringResource(android.R.string.cancel))
                 }

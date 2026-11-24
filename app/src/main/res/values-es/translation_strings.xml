@@ -126,7 +126,6 @@
     <string name="library_empty">Aún no hay configuraciones guardadas</string>
     <string name="library_empty_hint">Conecta los auriculares, elige los ajustes de audio en Inicio y guárdalos.</string>
     <string name="library_association_id">Asociación n.º %1$d</string>
-    <string name="library_association_only_hint">Sin configuración guardada</string>
     <string name="library_connected">Conectado</string>
     <string name="library_offline">Desconectado</string>
     <string name="library_saved_target">Configuración guardada</string>
@@ -142,13 +141,10 @@
     <string name="library_delete_question">¿Eliminar la configuración guardada?</string>
     <string name="library_pause_all">Pausar todo</string>
     <string name="library_resume_all">Reanudar</string>
-    <string name="library_restore_next_connection">Restaurar cada configuración guardada en la próxima conexión</string>
-    <string name="library_pause_preferences_kept">Se conservan las preferencias de cada dispositivo. La restauración automática está en pausa.</string>
     <string name="library_restore_paused_title">Restauración automática en pausa</string>
     <string name="library_restore_paused_on_hint">Preferencia guardada: activada · se aplica al reanudar</string>
     <string name="library_restore_paused_off_hint">Preferencia guardada: desactivada · se aplica al reanudar</string>
     <string name="library_restore_paused_description">La restauración automática está en pausa para todos los dispositivos. %1$s</string>
-    <string name="library_offline_edit_hint">Aunque el dispositivo esté desconectado, puedes consultar los ajustes y cambiar la preferencia de restauración.</string>
     <string name="library_connection_changed">La conexión ha cambiado. Espera a que se actualice el estado e inténtalo de nuevo.</string>
     <!-- notice_strings.xml -->
     <string name="notice_access_denied_fallback">No se ha concedido el permiso de Shizuku API. Se ha cambiado al acceso del sistema.</string>
@@ -254,7 +250,7 @@
     <string name="access_mode_system">Acceso del sistema</string>
     <string name="saved_profiles_section">Configuraciones guardadas</string>
     <string name="profile_delete">Eliminar configuración</string>
-    <string name="profile_delete_explanation">Elimina estos ajustes y desactiva la restauración automática para este dispositivo. Se mantiene el emparejamiento Bluetooth.</string>
+    <string name="profile_delete_explanation">Elimina los ajustes guardados y desactiva la restauración automática de este dispositivo. ¡No se puede deshacer!</string>
     <string name="restore_diagnostics_copy">Copiar registro</string>
     <string name="restore_diagnostics_clear">Borrar registro</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="access_mode_shizuku" translatable="false">Shizuku API</string>
     <string name="saved_profiles_section">Saved configurations</string>
     <string name="profile_delete">Delete configuration</string>
-    <string name="profile_delete_explanation">Delete these settings and turn off automatic restore for this device. Bluetooth pairing is kept.</string>
+    <string name="profile_delete_explanation">This deletes the saved settings and turns off automatic restore for this device. This cannot be undone!</string>
     <string name="restore_diagnostics_copy">Copy log</string>
     <string name="restore_diagnostics_clear">Clear log</string>
 </resources>
