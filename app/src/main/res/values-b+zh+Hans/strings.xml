@@ -3,7 +3,7 @@
     <string name="access_mode_system">系统方式</string>
     <string name="saved_profiles_section">已保存配置</string>
     <string name="profile_delete">删除配置</string>
-    <string name="profile_delete_explanation">删除此配置并关闭该耳机自动恢复，保留蓝牙配对。</string>
+    <string name="profile_delete_explanation">删除此耳机的保存配置并关闭其自动恢复。此操作无法撤销！</string>
     <string name="restore_diagnostics_copy">复制记录</string>
     <string name="restore_diagnostics_clear">清空日志</string>
 </resources>

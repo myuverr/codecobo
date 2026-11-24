@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.R
@@ -128,7 +129,15 @@ internal class LibraryPanel(private val context: Context, private val actions: A
                 Button(
                     onConfirm, Modifier.fillMaxWidth().testTag("confirm-delete"),
                     enabled = unchanged && state.connection?.busy() != true,
-                ) { Text(stringResource(R.string.profile_delete)) }
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                ) {
+                    Icon(painterResource(R.drawable.ic_action_delete), null, Modifier.size(ButtonDefaults.IconSize))
+                    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+                    Text(stringResource(R.string.profile_delete))
+                }
                 TextButton({ scope.launch { sheetState.hide(); onDismiss() } }, Modifier.fillMaxWidth()) {
                     Text(stringResource(android.R.string.cancel))
                 }

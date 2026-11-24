@@ -124,7 +124,6 @@
     <string name="library_empty">保存済みの設定はありません</string>
     <string name="library_empty_hint">ヘッドホンを接続し、ホームでオーディオ設定を選んで保存してください。</string>
     <string name="library_association_id">関連付け #%1$d</string>
-    <string name="library_association_only_hint">設定は保存されていません</string>
     <string name="library_connected">接続中</string>
     <string name="library_offline">未接続</string>
     <string name="library_saved_target">保存済みの設定</string>
@@ -140,13 +139,10 @@
     <string name="library_delete_question">保存済みの設定を削除しますか？</string>
     <string name="library_pause_all">すべて一時停止</string>
     <string name="library_resume_all">再開</string>
-    <string name="library_restore_next_connection">次回の接続時に保存済みの各設定を復元</string>
-    <string name="library_pause_preferences_kept">デバイスごとの設定は保持されます。自動復元は一時停止中です。</string>
     <string name="library_restore_paused_title">自動復元を一時停止中</string>
     <string name="library_restore_paused_on_hint">保存済みの設定：オン・再開後に有効</string>
     <string name="library_restore_paused_off_hint">保存済みの設定：オフ・再開後に有効</string>
     <string name="library_restore_paused_description">すべてのデバイスの自動復元が一時停止中です。%1$s</string>
-    <string name="library_offline_edit_hint">デバイスが未接続でも、設定の確認や復元設定の変更ができます。</string>
     <string name="library_connection_changed">接続が変わりました。状態が更新されてから、もう一度お試しください。</string>
     <!-- notice_strings.xml -->
     <string name="notice_access_denied_fallback">Shizuku API の権限が許可されなかったため、システム経由に切り替えました。</string>
@@ -252,7 +248,7 @@
     <string name="access_mode_system">システム経由</string>
     <string name="saved_profiles_section">保存済みの設定</string>
     <string name="profile_delete">設定を削除</string>
-    <string name="profile_delete_explanation">この設定を削除し、このデバイスの自動復元をオフにします。Bluetooth のペアリングは解除されません。</string>
+    <string name="profile_delete_explanation">このデバイスの保存済み設定を削除し、自動復元をオフにします。この操作は元に戻せません！</string>
     <string name="restore_diagnostics_copy">ログをコピー</string>
     <string name="restore_diagnostics_clear">ログを消去</string>
 </resources>

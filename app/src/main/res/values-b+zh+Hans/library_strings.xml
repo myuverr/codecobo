@@ -9,7 +9,6 @@
     <string name="library_empty">还没有保存耳机配置</string>
     <string name="library_empty_hint">连接耳机后，在主页选择参数并保存。</string>
     <string name="library_association_id">关联 #%1$d</string>
-    <string name="library_association_only_hint">尚未保存配置</string>
     <string name="library_connected">已连接</string>
     <string name="library_offline">未连接</string>
     <string name="library_saved_target">已保存配置</string>
@@ -25,12 +24,9 @@
     <string name="library_delete_question">删除已保存配置？</string>
     <string name="library_pause_all">暂停全部</string>
     <string name="library_resume_all">恢复运行</string>
-    <string name="library_restore_next_connection">下次连接时恢复各自的保存配置</string>
-    <string name="library_pause_preferences_kept">设备偏好保留，当前不会自动恢复</string>
     <string name="library_restore_paused_title">自动恢复已暂停</string>
     <string name="library_restore_paused_on_hint">原偏好：开启 · 恢复运行后生效</string>
     <string name="library_restore_paused_off_hint">原偏好：关闭 · 恢复运行后生效</string>
     <string name="library_restore_paused_description">全局自动恢复已暂停，%1$s</string>
-    <string name="library_offline_edit_hint">设备离线时仍可查看配置和更改恢复偏好。</string>
     <string name="library_connection_changed">设备连接已变化，请等待状态更新后重试。</string>
 </resources>

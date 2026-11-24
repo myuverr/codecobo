@@ -10,7 +10,6 @@
     <string name="library_empty">No saved configurations yet</string>
     <string name="library_empty_hint">Connect your headphones, choose audio settings on Home, then save.</string>
     <string name="library_association_id">Association #%1$d</string>
-    <string name="library_association_only_hint">No saved configuration</string>
     <string name="library_connected">Connected</string>
     <string name="library_offline">Disconnected</string>
     <string name="library_saved_target">Saved configuration</string>
@@ -26,12 +25,9 @@
     <string name="library_delete_question">Delete the saved configuration?</string>
     <string name="library_pause_all">Pause all</string>
     <string name="library_resume_all">Resume</string>
-    <string name="library_restore_next_connection">Restore each saved configuration on the next connection</string>
-    <string name="library_pause_preferences_kept">Device preferences are kept. Automatic restore is paused.</string>
     <string name="library_restore_paused_title">Automatic restore paused</string>
     <string name="library_restore_paused_on_hint">Saved preference: on · takes effect after resuming</string>
     <string name="library_restore_paused_off_hint">Saved preference: off · takes effect after resuming</string>
     <string name="library_restore_paused_description">Automatic restore is paused for all devices. %1$s</string>
-    <string name="library_offline_edit_hint">You can still view settings and change the restore preference while the device is disconnected.</string>
     <string name="library_connection_changed">The connection changed. Wait for the status to update, then try again.</string>
 </resources>

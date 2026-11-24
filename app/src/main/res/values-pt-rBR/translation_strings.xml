@@ -126,7 +126,6 @@
     <string name="library_empty">Nenhuma configuração salva ainda</string>
     <string name="library_empty_hint">Conecte os fones, escolha as configurações de áudio no Início e salve.</string>
     <string name="library_association_id">Associação nº %1$d</string>
-    <string name="library_association_only_hint">Nenhuma configuração salva</string>
     <string name="library_connected">Conectado</string>
     <string name="library_offline">Desconectado</string>
     <string name="library_saved_target">Configuração salva</string>
@@ -142,13 +141,10 @@
     <string name="library_delete_question">Excluir a configuração salva?</string>
     <string name="library_pause_all">Pausar tudo</string>
     <string name="library_resume_all">Retomar</string>
-    <string name="library_restore_next_connection">Restaurar cada configuração salva na próxima conexão</string>
-    <string name="library_pause_preferences_kept">As preferências dos dispositivos são mantidas. A restauração automática está pausada.</string>
     <string name="library_restore_paused_title">Restauração automática pausada</string>
     <string name="library_restore_paused_on_hint">Preferência salva: ativada · entra em vigor ao retomar</string>
     <string name="library_restore_paused_off_hint">Preferência salva: desativada · entra em vigor ao retomar</string>
     <string name="library_restore_paused_description">A restauração automática está pausada para todos os dispositivos. %1$s</string>
-    <string name="library_offline_edit_hint">Mesmo com o dispositivo desconectado, você pode ver as configurações e alterar a preferência de restauração.</string>
     <string name="library_connection_changed">A conexão mudou. Aguarde a atualização do status e tente novamente.</string>
     <!-- notice_strings.xml -->
     <string name="notice_access_denied_fallback">A permissão da Shizuku API não foi concedida. O acesso foi alterado para o sistema.</string>
@@ -254,7 +250,7 @@
     <string name="access_mode_system">Acesso pelo sistema</string>
     <string name="saved_profiles_section">Configurações salvas</string>
     <string name="profile_delete">Excluir configuração</string>
-    <string name="profile_delete_explanation">Exclui estas configurações e desativa a restauração automática deste dispositivo. O pareamento Bluetooth é mantido.</string>
+    <string name="profile_delete_explanation">Exclui as configurações salvas e desativa a restauração automática deste dispositivo. Não pode ser desfeito!</string>
     <string name="restore_diagnostics_copy">Copiar registro</string>
     <string name="restore_diagnostics_clear">Limpar registro</string>
 </resources>

@@ -14,7 +14,6 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -47,8 +46,6 @@ internal fun LibraryScreen(
     val paused = data.restorePaused
     val summaryColor = if (paused) LocalWorkbenchColors.current.tint else colors.surfaceContainerLow
     val enabledCount = data.profiles.count { it.enabled() }
-    // Wrap the action before it squeezes the summary into a narrow text column.
-    val minimumSummaryWidth = with(LocalDensity.current) { MaterialTheme.typography.bodyMedium.fontSize.toDp() * 8f }
     PageLayout(stringResource(R.string.home_nav_headphones)) {
         if (data.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         else if (data.readError == null) {
@@ -57,33 +54,24 @@ internal fun LibraryScreen(
                 colors = CardDefaults.cardColors(containerColor = summaryColor),
             ) {
                 FlowRow(
-                    Modifier.fillMaxWidth().heightIn(min = 80.dp).padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                    Modifier.fillMaxWidth().padding(horizontal = LibraryInset, vertical = LibraryBlockGap),
+                    horizontalArrangement = Arrangement.spacedBy(LibraryBlockGap, Alignment.End),
+                    verticalArrangement = Arrangement.spacedBy(LibraryTightGap, Alignment.CenterVertically),
                     itemVerticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Row(Modifier.weight(1f).widthIn(min = minimumSummaryWidth),
-                        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(LibraryBlockGap)) {
                         if (paused) Icon(painterResource(R.drawable.ic_restore_pause), null,
                             Modifier.size(24.dp), tint = colors.primary)
-                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                            Text(
-                                if (data.restorePaused) stringResource(R.string.library_paused)
-                                else resources.getQuantityString(R.plurals.library_enabled_count, enabledCount, enabledCount),
-                                style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
-                                textAlign = TextAlign.Start, color = if (paused) colors.primary else colors.onSurface,
-                            )
-                            Text(
-                                stringResource(if (data.restorePaused) R.string.library_pause_preferences_kept
-                                    else R.string.library_restore_next_connection),
-                                style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Start,
-                                color = colors.onSurfaceVariant,
-                            )
-                        }
+                        Text(
+                            if (paused) stringResource(R.string.library_paused)
+                            else resources.getQuantityString(R.plurals.library_enabled_count, enabledCount, enabledCount),
+                            style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
+                            textAlign = TextAlign.Start, color = if (paused) colors.primary else colors.onSurface,
+                        )
                     }
                     TextButton(
-                        { onPaused(!data.restorePaused) }, enabled = !busy,
+                        { onPaused(!paused) }, enabled = !busy,
                         modifier = Modifier.testTag("pause-all"), shape = LibraryCardShape,
                         colors = ButtonDefaults.textButtonColors(
                             containerColor = if (paused) colors.primary else Color.Transparent,
@@ -95,7 +83,9 @@ internal fun LibraryScreen(
                 }
             }
         }
-        data.readError?.let { PageNote(stringResource(R.string.notice_profile_read_failed), Modifier.padding(top = 12.dp)) }
+        data.readError?.let {
+            PageNote(stringResource(R.string.notice_profile_read_failed), Modifier.padding(top = LibraryBlockGap))
+        }
         SectionLabel(stringResource(R.string.saved_profiles_section))
         if (data.profiles.isEmpty() && !data.loading && data.readError == null) {
             Card(shape = LibraryCardShape,
@@ -103,7 +93,7 @@ internal fun LibraryScreen(
                 SettingRow(stringResource(R.string.library_empty), stringResource(R.string.library_empty_hint))
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(LibraryBlockGap)) {
             for (profile in data.profiles) key(profile.address()) {
                 SavedProfileCard(
                     profile = profile,
@@ -140,10 +130,11 @@ private fun SavedProfileCard(
             modifier = Modifier.fillMaxWidth().testTag("profile-" + profile.address()).semantics { role = Role.Button },
             shapes = libraryConfigurationShapes(),
             colors = ListItemDefaults.colors(containerColor = upperColor),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(LibraryInset),
         ) {
             Column {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(LibraryBlockGap),
+                    verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         Modifier.size(42.dp), shape = RoundedCornerShape(12.dp),
                         color = lerp(colors.surface, colors.primaryContainer, .4f), contentColor = colors.primary,
@@ -152,11 +143,12 @@ private fun SavedProfileCard(
                             Icon(painterResource(R.drawable.ic_home_headphones), null)
                         }
                     }
-                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(profile.name(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(LibraryTightGap),
                             verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (connected) Surface(Modifier.size(4.dp), shape = CircleShape, color = colors.primary) {}
                                 Text(
                                     stringResource(if (connected) R.string.library_connected else R.string.library_offline),
@@ -173,8 +165,9 @@ private fun SavedProfileCard(
                         Modifier.size(16.dp).rotate(if (LocalLayoutDirection.current == LayoutDirection.Rtl) 90f else -90f),
                         tint = colors.onSurfaceVariant)
                 }
-                Spacer(Modifier.height(10.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Spacer(Modifier.height(LibraryBlockGap))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(LibraryTightGap),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(profile.codecName(), Modifier.alignByBaseline(), style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.SemiBold, color = colors.primary)
                     Text(audio.rate(profile.request().sampleRate()), Modifier.alignByBaseline(),
@@ -188,6 +181,6 @@ private fun SavedProfileCard(
             }
         }
         LibraryRestoreControl(profile, paused, busy, onRestore,
-            Modifier.testTag("library-restore-" + profile.address()))
+            Modifier.testTag("library-restore-" + profile.address()), explainPause = false)
     }
 }
