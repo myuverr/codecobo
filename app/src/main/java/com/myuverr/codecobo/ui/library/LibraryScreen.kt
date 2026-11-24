@@ -77,7 +77,7 @@ internal fun LibraryScreen(
                             containerColor = if (paused) colors.primary else Color.Transparent,
                             contentColor = if (paused) colors.onPrimary else colors.primary),
                     ) {
-                        Text(stringResource(if (data.restorePaused) R.string.library_resume_all else R.string.library_pause_all),
+                        Text(stringResource(if (paused) R.string.library_resume_all else R.string.library_pause_all),
                             style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
                     }
                 }
@@ -98,7 +98,7 @@ internal fun LibraryScreen(
                 SavedProfileCard(
                     profile = profile,
                     connected = state.connection?.devices()?.any { sameAddress(it.address(), profile.address()) } == true,
-                    busy = busy, paused = data.restorePaused,
+                    busy = busy, paused = paused,
                     onOpen = { onOpen(DeviceKey(profile.address())) },
                     onRestore = { onRestore(profile.address(), it) },
                 )
@@ -119,10 +119,10 @@ private fun SavedProfileCard(
     val audio = AudioText(LocalResources.current)
     val colors = MaterialTheme.colorScheme
     val upperColor = if (connected) LocalWorkbenchColors.current.tint else colors.surfaceContainerLow
-    val restoreColor = if (paused) colors.surfaceContainerHighest else colors.surfaceContainer
+    val cardColor = if (paused) colors.surfaceContainerHighest else colors.surfaceContainer
     Card(
         Modifier.fillMaxWidth().testTag("profile-card-" + profile.address()), shape = LibraryCardShape,
-        colors = CardDefaults.cardColors(containerColor = restoreColor),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
     ) {
         // The restore switch is not a descendant of the navigation target.
         ListItem(

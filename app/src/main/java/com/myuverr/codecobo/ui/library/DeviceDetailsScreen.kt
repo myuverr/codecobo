@@ -42,6 +42,7 @@ internal fun DeviceDetailsScreen(
         ?: stringResource(R.string.notification_unnamed_device)
     val profile = detail.saved
     val busy = state.connection?.busy() == true
+    val paused = state.data.restorePaused
     PageLayout(name, onBack = onBack) {
         state.data.readError?.let {
             PageNote(stringResource(R.string.notice_profile_read_failed), Modifier.padding(bottom = LibraryBlockGap))
@@ -50,9 +51,9 @@ internal fun DeviceDetailsScreen(
             Modifier.fillMaxWidth().padding(horizontal = 4.dp).padding(bottom = LibraryBlockGap),
             horizontalArrangement = Arrangement.spacedBy(LibraryBlockGap), verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Modifier.width(DetailArtworkWidth).aspectRatio(HeadphoneArtworkAspectRatio)) {
-                HeadphoneIllustration(Modifier.fillMaxSize().testTag("detail-artwork"))
-            }
+            HeadphoneIllustration(
+                Modifier.width(DetailArtworkWidth).aspectRatio(HeadphoneArtworkAspectRatio).testTag("detail-artwork"),
+            )
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(LibraryTightGap)) {
                 Text(stringResource(if (detail.connected) R.string.library_connected else R.string.library_offline),
                     style = MaterialTheme.typography.bodyMedium, color = colors.primary)
@@ -103,8 +104,8 @@ internal fun DeviceDetailsScreen(
         }
         Spacer(Modifier.height(LibraryBlockGap))
         Surface(shape = LibraryCardShape,
-            color = if (state.data.restorePaused) colors.surfaceContainerHighest else colors.surfaceContainerLow) {
-            LibraryRestoreControl(profile, state.data.restorePaused, busy,
+            color = if (paused) colors.surfaceContainerHighest else colors.surfaceContainerLow) {
+            LibraryRestoreControl(profile, paused, busy,
                 { enabled -> profile?.let { onRestore(it.address(), enabled) } },
                 Modifier.testTag("detail-restore"))
         }

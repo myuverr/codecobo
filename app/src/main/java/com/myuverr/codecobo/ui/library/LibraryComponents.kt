@@ -62,7 +62,8 @@ internal fun LibraryRestoreControl(
 ) {
     val colors = MaterialTheme.colorScheme
     val checked = profile?.enabled() == true
-    val pausedHeading = paused && explainPause
+    val namesPause = paused && explainPause
+    val mutedHeading = paused && !explainPause
     val label = if (profile == null) stringResource(R.string.home_restore_description)
         else stringResource(R.string.library_restore_label, profile.name())
     val pausedDescription = if (paused) stringResource(R.string.library_restore_paused_description,
@@ -74,13 +75,12 @@ internal fun LibraryRestoreControl(
     ) {
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(LibraryTightGap)) {
-            if (pausedHeading) Icon(painterResource(R.drawable.ic_restore_pause), null, Modifier.size(16.dp))
+            if (namesPause) Icon(painterResource(R.drawable.ic_restore_pause), null, Modifier.size(16.dp))
             // The heading stays the same when paused; only the tone changes.
-            Text(stringResource(if (pausedHeading) R.string.library_restore_paused_title else R.string.home_restore),
+            Text(stringResource(if (namesPause) R.string.library_restore_paused_title else R.string.home_restore),
                 style = MaterialTheme.typography.bodyMedium,
                 // Muted enough to read as inactive, still legible on the paused card.
-                color = if (paused && !pausedHeading) colors.onSurfaceVariant.copy(alpha = .8f)
-                    else LocalContentColor.current)
+                color = if (mutedHeading) colors.onSurfaceVariant.copy(alpha = .8f) else LocalContentColor.current)
         }
         Switch(
             checked = checked, onCheckedChange = onChanged,

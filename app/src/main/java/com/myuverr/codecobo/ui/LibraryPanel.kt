@@ -122,6 +122,7 @@ internal class LibraryPanel(private val context: Context, private val actions: A
         val unchanged = current?.revision() == requested.revision()
         val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
         val scope = rememberCoroutineScope()
+        val colors = MaterialTheme.colorScheme
         ModalBottomSheet(sheetState = sheetState, onDismissRequest = onDismiss) {
             Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(stringResource(R.string.library_delete_question), style = MaterialTheme.typography.titleLarge)
@@ -130,8 +131,8 @@ internal class LibraryPanel(private val context: Context, private val actions: A
                     onConfirm, Modifier.fillMaxWidth().testTag("confirm-delete"),
                     enabled = unchanged && state.connection?.busy() != true,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError,
+                        containerColor = colors.error,
+                        contentColor = colors.onError,
                     ),
                 ) {
                     Icon(painterResource(R.drawable.ic_action_delete), null, Modifier.size(ButtonDefaults.IconSize))
