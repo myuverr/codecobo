@@ -1,6 +1,12 @@
 # SPDX-License-Identifier: MPL-2.0
 
 [versions]
+# The platform package carries a minor version, so CI installs it separately from compileSdk.
+android-compileSdk = "37"
+android-minSdk = "33"
+android-targetSdk = "37"
+android-platform = "37.0"
+android-buildTools = "36.0.0"
 agp = "9.5.2"
 kotlin = "2.4.21"
 ksp = "2.3.14"
