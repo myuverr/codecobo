@@ -118,9 +118,12 @@ internal fun AppNavigation(
                                 }
                             }
                             if (showingTabs) {
+                                val showAction = selectedTab == TopLevelPage.CONTROL && home.canShowEditor
                                 AppNavigationBar(
-                                    selectedTab,
-                                    Modifier.align(Alignment.BottomCenter)
+                                    selected = selectedTab,
+                                    showAction = showAction,
+                                    action = { home.PrimaryAction(showAction) },
+                                    modifier = Modifier.align(Alignment.BottomCenter)
                                         .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
                                         .onSizeChanged { overlay.navigationMeasured(it.height) },
                                     onSelected = { selectedTab = it },

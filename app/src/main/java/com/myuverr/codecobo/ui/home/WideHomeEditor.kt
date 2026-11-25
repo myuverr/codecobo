@@ -7,7 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -26,7 +25,6 @@ internal fun WideHomeEditor(
     onRateSelected: (Int) -> Unit,
     onOpenSettings: () -> Unit,
     onRestoreChanged: (Boolean) -> Unit,
-    onSubmit: () -> Unit,
     onBitsSelected: (Int) -> Unit,
     onChannelSelected: (Int) -> Unit,
     onQualitySelected: (Int) -> Unit,
@@ -49,10 +47,9 @@ internal fun WideHomeEditor(
                 }
             }
             Box(Modifier.weight(.64f).fillMaxHeight().testTag("parameter-pane")) {
-                val contentClearance = navigationClearance + 88.dp
-                FloatingScrollContent(contentClearance) {
+                FloatingScrollContent(navigationClearance) {
                     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                        .padding(bottom = contentClearance)) {
+                        .padding(bottom = navigationClearance)) {
                         if (state.capabilities.isEmpty()) ReadPreparation(onOpenSettings)
                         else key(state.connection?.selectedAddress(), state.editor.deviceAddress) {
                             TargetConfiguration(state, onCodecSelected, onRateSelected, onBitsSelected, onChannelSelected, onQualitySelected)
@@ -61,10 +58,6 @@ internal fun WideHomeEditor(
                         if (selected != null) RestorePreference(state, onRestoreChanged)
                         Spacer(Modifier.height(12.dp))
                     }
-                }
-                key(state.connection?.selectedAddress(), state.editor.deviceAddress) {
-                    SubmitTarget(state, onSubmit, Modifier.align(Alignment.BottomEnd)
-                        .padding(bottom = navigationClearance + 16.dp))
                 }
             }
         }

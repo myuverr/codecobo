@@ -37,7 +37,6 @@ internal fun HomeScreen(
     onDeviceSelected: (String) -> Unit,
     onCodecSelected: (Int) -> Unit,
     onRateSelected: (Int) -> Unit,
-    onSubmit: () -> Unit,
     onOpenBluetooth: () -> Unit,
     onOpenSettings: () -> Unit,
     onRestoreChanged: (Boolean) -> Unit,
@@ -48,7 +47,7 @@ internal fun HomeScreen(
     val connection = state.connection
     val devices = connection?.devices().orEmpty()
     val selected = devices.find { it.address() == connection?.selectedAddress() }
-    val showEditor = connection?.bluetoothPermission() == true && devices.isNotEmpty()
+    val showEditor = state.canShowEditor
     val type = LocalAppTypeScale.current
     val navigationClearance = LocalFloatingNavigationClearance.current
     var choosingDevice by rememberSaveable { mutableStateOf(false) }
@@ -67,15 +66,14 @@ internal fun HomeScreen(
                     when {
                         showEditor && wide -> WideHomeEditor(
                             state, selected, Modifier.weight(1f), { choosingDevice = true },
-                            onCodecSelected, onRateSelected, onOpenSettings, onRestoreChanged, onSubmit,
+                            onCodecSelected, onRateSelected, onOpenSettings, onRestoreChanged,
                             onBitsSelected, onChannelSelected, onQualitySelected,
                         )
                         showEditor -> Box(Modifier.weight(1f).fillMaxWidth()) {
-                            val contentClearance = navigationClearance + 88.dp
-                            FloatingScrollContent(contentClearance) {
+                            FloatingScrollContent(navigationClearance) {
                                 Column(
                                     Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                                        .padding(horizontal = type.gutter).padding(top = 7.dp, bottom = contentClearance),
+                                        .padding(horizontal = type.gutter).padding(top = 7.dp, bottom = navigationClearance),
                                 ) {
                                     DeviceSelector(state, selected) { choosingDevice = true }
                                     Spacer(Modifier.height(11.dp))
@@ -92,10 +90,6 @@ internal fun HomeScreen(
                                     if (selected != null) RestorePreference(state, onRestoreChanged)
                                     Spacer(Modifier.height(12.dp))
                                 }
-                            }
-                            key(connection?.selectedAddress(), state.editor.deviceAddress) {
-                                SubmitTarget(state, onSubmit, Modifier.align(Alignment.BottomEnd)
-                                    .padding(end = type.gutter, bottom = navigationClearance + 16.dp))
                             }
                         }
                         else -> OfflineHome(state, Modifier.weight(1f), onOpenBluetooth, onOpenSettings)

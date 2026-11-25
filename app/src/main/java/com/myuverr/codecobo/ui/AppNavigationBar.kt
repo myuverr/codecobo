@@ -2,38 +2,47 @@
 
 package com.myuverr.codecobo.ui
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.animation.animateColorAsState
-import com.myuverr.codecobo.ui.components.NavigationGlyph
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import kotlinx.coroutines.flow.filterNot
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.NavigationItemIconPosition
+import androidx.compose.material3.ShortNavigationBar
+import androidx.compose.material3.ShortNavigationBarDefaults
+import androidx.compose.material3.ShortNavigationBarItem
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
+import com.myuverr.codecobo.ui.components.NavigationGlyph
+import kotlinx.coroutines.flow.Flow
 
 internal enum class TopLevelPage(val title: Int, val icon: Int, val selectedIcon: Int, val motion: Int) {
     CONTROL(R.string.home_nav_control, R.drawable.ic_nav_home, R.drawable.ic_nav_home_selected, R.raw.nav_house_motion),
@@ -41,98 +50,79 @@ internal enum class TopLevelPage(val title: Int, val icon: Int, val selectedIcon
     SETTINGS(R.string.home_nav_settings, R.drawable.ic_nav_settings, R.drawable.ic_nav_settings_selected, R.raw.nav_gear_six_motion),
 }
 
+/** Floating tab capsule with one contextual action beside it. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun AppNavigationBar(selected: TopLevelPage, modifier: Modifier = Modifier, onSelected: (TopLevelPage) -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    BoxWithConstraints(
-        modifier.widthIn(max = 256.dp).fillMaxWidth().testTag("navigation-viewport"),
-        contentAlignment = Alignment.Center,
-    ) {
-        val density = LocalDensity.current
-        val measurer = rememberTextMeasurer()
-        val labelStyle = LocalTextStyle.current.copy(fontSize = 10.adaptiveSp, lineHeight = 15.adaptiveSp)
-        val titles = TopLevelPage.entries.map { stringResource(it.title) }
-        // Use the narrowest weighted slot so wrapped labels fit every item.
-        val textWidth = with(density) {
-            ((maxWidth.roundToPx() - 4.dp.roundToPx() * 4) / 3 - 6.dp.roundToPx() * 2).coerceAtLeast(1)
-        }
-        val labelHeight = remember(measurer, labelStyle, titles, selected, textWidth) {
-            titles.mapIndexed { index, title ->
-                measurer.measure(title,
-                    style = labelStyle.copy(fontWeight = if (TopLevelPage.entries[index] == selected) FontWeight.Bold else FontWeight.Normal),
-                    constraints = Constraints(maxWidth = textWidth)).size.height
-            }.max()
-        }
-        val height = with(density) {
-            (maxOf(48.dp.roundToPx(), 22.dp.roundToPx() + 3.dp.roundToPx() + labelHeight + 4.dp.roundToPx() * 2) +
-                4.dp.roundToPx() * 2).toDp()
-        }
-        val direction = LocalLayoutDirection.current
-        val slots = remember(density, direction) { mutableStateMapOf<TopLevelPage, Rect>() }
-        var rowSize by remember { mutableStateOf(IntSize.Zero) }
-        HorizontalFloatingToolbar(
-            expanded = true,
-            modifier = Modifier.widthIn(max = 256.dp).fillMaxWidth().height(height).testTag("navigation-capsule"),
-            contentPadding = PaddingValues(4.dp),
-            expandedShadowElevation = 1.dp,
-            collapsedShadowElevation = 1.dp,
+internal fun AppNavigationBar(
+    selected: TopLevelPage,
+    showAction: Boolean,
+    action: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    onSelected: (TopLevelPage) -> Unit,
+) {
+    val motion = MotionScheme.expressive()
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+        Surface(
+            Modifier.weight(1f, fill = false).widthIn(max = 256.dp).testTag("navigation-capsule"),
+            shape = CircleShape,
+            color = ShortNavigationBarDefaults.containerColor,
+            shadowElevation = 1.dp,
         ) {
-            Box(Modifier.fillMaxSize().onSizeChanged { rowSize = it }) {
-                NavigationSelectionIndicator(slots[selected], rowSize)
-                Row(
-                    Modifier.fillMaxSize().selectableGroup(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    for ((index, page) in TopLevelPage.entries.withIndex()) {
-                        val isSelected = selected == page
-                        val iconTint by animateColorAsState(if (isSelected) colors.primary else colors.onSurfaceVariant,
-                            MotionScheme.expressive().fastEffectsSpec(), label = "navigation-icon-tint")
-                        val tabShape = remember { RoundedCornerShape(percent = 50) }
-                        // Press-disabled ripple can still paint SDK35 sparkles. Filter its press
-                        // input while retaining selectable's gesture and focus handling.
-                        val interaction = remember { MutableInteractionSource() }
-                        val visualInteraction = remember(interaction) {
-                            object : InteractionSource {
-                                override val interactions = interaction.interactions.filterNot { it is PressInteraction }
-                            }
-                        }
-                        val tabIndication = remember(tabShape) {
-                            ripple(focusRingShape = tabShape, enablePressIndication = false)
-                        }
-                        Surface(
-                            modifier = Modifier.weight(1f).fillMaxHeight().testTag("navigation-" + page.name)
-                                .onGloballyPositioned { coordinates ->
-                                    slots[page] = Rect(coordinates.positionInParent(), androidx.compose.ui.geometry.Size(
-                                        coordinates.size.width.toFloat(), coordinates.size.height.toFloat()))
-                                }
-                                .minimumInteractiveComponentSize()
-                                .clip(tabShape)
-                                .indication(visualInteraction, tabIndication)
-                                .selectable(selected = isSelected, interactionSource = interaction,
-                                    indication = null, role = Role.Tab,
-                                    onClick = { if (!isSelected) onSelected(page) }),
-                            shape = tabShape,
-                            color = androidx.compose.ui.graphics.Color.Transparent,
-                            contentColor = colors.onSurfaceVariant,
-                        ) {
-                            Column(
-                                Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(3.dp),
-                            ) {
-                                NavigationPulsingGlyph(page, isSelected) { motion ->
-                                    NavigationGlyph(page.icon, page.selectedIcon, page.motion, isSelected, iconTint, Modifier.size(22.dp).then(motion))
-                                }
-                                Text(
-                                    titles[index],
-                                    style = labelStyle,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                )
-                            }
-                        }
-                    }
+            // The capsule owns the surface, so the bar must not paint another one.
+            ShortNavigationBar(containerColor = Color.Transparent, windowInsets = WindowInsets(0, 0, 0, 0)) {
+                for (page in TopLevelPage.entries) {
+                    val pageSelected = selected == page
+                    ShortNavigationBarItem(
+                        selected = pageSelected,
+                        onClick = { if (!pageSelected) onSelected(page) },
+                        icon = { NavigationItemGlyph(page, pageSelected, motion) },
+                        label = { Text(stringResource(page.title)) },
+                        iconPosition = NavigationItemIconPosition.Start,
+                        interactionSource = remember { PressFreeInteractionSource() },
+                        modifier = Modifier.testTag("navigation-" + page.name),
+                    )
                 }
+            }
+        }
+        AnimatedVisibility(
+            visible = showAction,
+            enter = expandHorizontally(expandFrom = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
+                fadeIn(motion.fastEffectsSpec()),
+            exit = shrinkHorizontally(shrinkTowards = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
+                fadeOut(motion.fastEffectsSpec()),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(Modifier.width(8.dp))
+                action()
             }
         }
     }
 }
+
+/** Keeps hover and focus feedback while dropping the press ripple. */
+private class PressFreeInteractionSource : MutableInteractionSource {
+    private val delegate = MutableInteractionSource()
+    override val interactions: Flow<Interaction> = delegate.interactions
+    override suspend fun emit(interaction: Interaction) {
+        if (interaction !is PressInteraction) delegate.emit(interaction)
+    }
+    override fun tryEmit(interaction: Interaction): Boolean =
+        interaction !is PressInteraction && delegate.tryEmit(interaction)
+}
+
+/** The glyph stays composed so its draw-in and selection pulse keep running while hidden. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun NavigationItemGlyph(page: TopLevelPage, selected: Boolean, motion: MotionScheme) {
+    val width by animateDpAsState(
+        targetValue = if (selected) GlyphSize else 0.dp,
+        animationSpec = motion.fastSpatialSpec(),
+        label = "navigation-glyph-width",
+    )
+    Box(Modifier.width(width.coerceIn(0.dp, GlyphSize)).height(GlyphSize).clipToBounds()) {
+        NavigationGlyph(page.icon, page.selectedIcon, page.motion, selected, LocalContentColor.current,
+            Modifier.size(GlyphSize).navigationPulse(selected).testTag("navigation-glyph-" + page.name))
+    }
+}
+
+private val GlyphSize = 22.dp

@@ -128,7 +128,7 @@ private fun ChoiceLegend() {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, shown: Boolean, modifier: Modifier = Modifier) {
     val savedTargetMatches = state.savedTargetMatches
     val savedDescription = stringResource(R.string.home_saved_unchanged)
     val actionDescription = stringResource(if (state.capabilities.isEmpty()) R.string.home_prepare else R.string.home_submit)
@@ -137,7 +137,7 @@ internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, modifier: Modi
         R.string.home_completed_saved else R.string.home_completed_applied)
     FilledIconButton(
         onClick = onSubmit,
-        enabled = state.canSubmit,
+        enabled = state.canSubmit && shown,
         modifier = modifier.size(56.dp).testTag("apply").semantics {
             contentDescription = actionDescription
             if (state.submitting) stateDescription = submittingDescription
