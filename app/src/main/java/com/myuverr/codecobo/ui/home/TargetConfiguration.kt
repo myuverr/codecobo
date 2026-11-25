@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.myuverr.codecobo.ui.LocalNavigationActionSize
 import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.core.AudioParameters
@@ -128,7 +129,7 @@ private fun ChoiceLegend() {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, modifier: Modifier = Modifier) {
+internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, shown: Boolean, modifier: Modifier = Modifier) {
     val savedTargetMatches = state.savedTargetMatches
     val savedDescription = stringResource(R.string.home_saved_unchanged)
     val actionDescription = stringResource(if (state.capabilities.isEmpty()) R.string.home_prepare else R.string.home_submit)
@@ -137,8 +138,8 @@ internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, modifier: Modi
         R.string.home_completed_saved else R.string.home_completed_applied)
     FilledIconButton(
         onClick = onSubmit,
-        enabled = state.canSubmit,
-        modifier = modifier.size(56.dp).testTag("apply").semantics {
+        enabled = state.canSubmit && shown,
+        modifier = modifier.size(LocalNavigationActionSize.current).testTag("apply").semantics {
             contentDescription = actionDescription
             if (state.submitting) stateDescription = submittingDescription
             else if (savedTargetMatches) stateDescription = savedDescription

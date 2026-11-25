@@ -33,6 +33,7 @@ internal data class HomeState(
     val channels get() = selectedCapability?.channels.orEmpty()
     val qualities get() = selectedCapability?.qualities.orEmpty()
     val busy get() = connection?.busy() == true
+    val canShowEditor get() = connection?.let { it.bluetoothPermission() && it.devices().isNotEmpty() } == true
     val changingDevice get() = editor.deviceAddress != null && editor.deviceAddress != connection?.selectedAddress()
     val canEditDraft get() = !changingDevice && connection?.canEdit() == true
     val canPrepare get() = !changingDevice && capabilities.isEmpty() && connection?.canPrepareEdit() == true

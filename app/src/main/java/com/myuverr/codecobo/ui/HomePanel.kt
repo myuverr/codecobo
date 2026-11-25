@@ -5,6 +5,7 @@ package com.myuverr.codecobo.ui
 import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.myuverr.codecobo.controller.ScreenState
@@ -14,6 +15,7 @@ import com.myuverr.codecobo.core.SubmissionIntent
 import com.myuverr.codecobo.ui.home.HomeEditor
 import com.myuverr.codecobo.ui.home.HomeScreen
 import com.myuverr.codecobo.ui.home.HomeState
+import com.myuverr.codecobo.ui.home.SubmitTarget
 
 internal class HomePanel(private val actions: Actions) {
     interface Actions {
@@ -25,6 +27,20 @@ internal class HomePanel(private val actions: Actions) {
 
     private var state by mutableStateOf(HomeState())
 
+    val canShowEditor: Boolean get() = state.canShowEditor
+
+    /**
+     * Kept beside the navigation so it stays put while the page scrolls. [shown] is false while the
+     * bar animates the action away, so a tap aimed at the next tab cannot submit from the exit.
+     */
+    @Composable
+    fun PrimaryAction(shown: Boolean) {
+        // Another device starts from a clean button instead of the previous one's save animation.
+        key(state.connection?.selectedAddress(), state.editor.deviceAddress) {
+            SubmitTarget(state, ::submit, shown)
+        }
+    }
+
     @Composable
     fun Content(onOpenSettings: () -> Unit) {
         HomeScreen(
@@ -32,7 +48,6 @@ internal class HomePanel(private val actions: Actions) {
             onDeviceSelected = ::selectDevice,
             onCodecSelected = { type -> editParameters { it.selectCodec(type, state.capabilities) } },
             onRateSelected = { rate -> editParameters { it.selectRate(rate, state.capabilities) } },
-            onSubmit = ::submit,
             onOpenBluetooth = actions::openBluetooth,
             onOpenSettings = onOpenSettings,
             onRestoreChanged = ::setRestore,
