@@ -20,6 +20,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.myuverr.codecobo.ui.LocalNavigationActionSize
 import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.core.AudioParameters
@@ -138,7 +139,7 @@ internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, shown: Boolean
     FilledIconButton(
         onClick = onSubmit,
         enabled = state.canSubmit && shown,
-        modifier = modifier.size(56.dp).testTag("apply").semantics {
+        modifier = modifier.size(LocalNavigationActionSize.current).testTag("apply").semantics {
             contentDescription = actionDescription
             if (state.submitting) stateDescription = submittingDescription
             else if (savedTargetMatches) stateDescription = savedDescription

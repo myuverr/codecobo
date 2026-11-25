@@ -3,6 +3,7 @@
 package com.myuverr.codecobo.ui.theme
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -18,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.myuverr.codecobo.ui.capsuleGeometry
 import com.myuverr.codecobo.ui.components.FloatingOverlayState
 import com.myuverr.codecobo.ui.components.LocalFloatingNavigationClearance
 
@@ -45,9 +47,10 @@ internal fun CodecTheme(
     val type = remember(tier) { AppTypeScale(tier) }
     val typography = remember(type) { type.materialTypography() }
     val navigationClearance = if (navigationOverlay == null) 0.dp else with(LocalDensity.current) {
-        // Navigation may not be measured on the first frame.
+        // Navigation may not be measured on the first frame; use the height it will settle on.
         (if (navigationOverlay.navigationHeightPixels > 0) navigationOverlay.navigationHeightPixels.toDp()
-        else maxOf(56.dp, 41.dp + type.sp(15f).toDp())) + 12.dp
+        else capsuleGeometry(typography.labelMedium.lineHeight.toDp(),
+            LocalMinimumInteractiveComponentSize.current).height) + 12.dp
     }
     CompositionLocalProvider(LocalWorkbenchColors provides workbench, LocalAppTypeScale provides type,
         LocalPageSurface provides surface,
