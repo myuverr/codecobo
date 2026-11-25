@@ -20,6 +20,16 @@ import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.controller.SubmissionFeedback
 
+/** The loading fades out, the package draws, its check mark follows, then the tint settles. */
+private const val LoadingFadeMillis = 160
+private const val PackageDrawMillis = 400
+private const val CheckDrawMillis = 220
+private const val TintMillis = 300
+
+private const val CheckStartMillis = LoadingFadeMillis + PackageDrawMillis
+private const val TintStartMillis = CheckStartMillis + CheckDrawMillis
+private const val RevealMillis = TintStartMillis + TintMillis
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SubmitFeedback(state: HomeState) {
@@ -36,7 +46,7 @@ internal fun SubmitFeedback(state: HomeState) {
     val success = state.completedTargetMatches
     val reveal = success && animate && (receipt != lastStarted || active == receipt)
     // Set the first frame before effects run to avoid an icon flash.
-    val elapsed = if (active == receipt) progress.value * 1080f else 0f
+    val elapsed = if (active == receipt) progress.value * RevealMillis else 0f
     LaunchedEffect(receipt, success, animate) {
         active = null
         if (success && receipt != lastStarted) {
@@ -44,14 +54,14 @@ internal fun SubmitFeedback(state: HomeState) {
             if (animate) {
                 progress.snapTo(0f)
                 active = receipt
-                progress.animateTo(1f, tween(1080, easing = LinearEasing))
+                progress.animateTo(1f, tween(RevealMillis, easing = LinearEasing))
                 active = null
             }
         }
     }
     Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-        if (state.submitting || (reveal && elapsed < 160f)) {
-            val fade = if (state.submitting) 0f else (elapsed / 160f).coerceIn(0f, 1f)
+        if (state.submitting || (reveal && elapsed < LoadingFadeMillis)) {
+            val fade = if (state.submitting) 0f else (elapsed / LoadingFadeMillis).coerceIn(0f, 1f)
             val loadingModifier = Modifier.size(32.dp).testTag("submit-loading")
                 .graphicsLayer { alpha = 1f - fade; scaleX = 1f - fade * .15f; scaleY = scaleX }
                 .clearAndSetSemantics { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
@@ -60,10 +70,10 @@ internal fun SubmitFeedback(state: HomeState) {
                 color = MaterialTheme.colorScheme.primary, polygons = LoadingIndicatorDefaults.IndeterminateIndicatorPolygons)
         } else if (reveal) {
             SavedPackageGlyph(
-                bodyProgress = ((elapsed - 160f) / 400f).coerceIn(0f, 1f),
-                checkProgress = ((elapsed - 560f) / 220f).coerceIn(0f, 1f),
+                bodyProgress = ((elapsed - LoadingFadeMillis) / PackageDrawMillis).coerceIn(0f, 1f),
+                checkProgress = ((elapsed - CheckStartMillis) / CheckDrawMillis).coerceIn(0f, 1f),
                 tint = lerp(MaterialTheme.colorScheme.primary, LocalContentColor.current,
-                    ((elapsed - 780f) / 300f).coerceIn(0f, 1f)),
+                    ((elapsed - TintStartMillis) / TintMillis).coerceIn(0f, 1f)),
                 modifier = Modifier.size(28.dp).testTag("submit-package"),
             )
         } else {
