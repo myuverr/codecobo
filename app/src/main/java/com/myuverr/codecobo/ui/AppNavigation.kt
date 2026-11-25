@@ -2,6 +2,8 @@
 
 package com.myuverr.codecobo.ui
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
@@ -15,9 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +46,19 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 internal data object MainTabs : NavKey
+
+/**
+ * The capsule's spatial spring, critically damped so a slide that starts from rest cannot overshoot,
+ * with a thousandth-of-a-page threshold so the strip lands flush. A slide retargeted mid-flight
+ * keeps its velocity and may briefly run past its target; only the two ends are clamped.
+ * [MotionScheme.fastSpatialSpec] is typed as a plain spec, hence the cast to read its stiffness.
+ */
+internal val MotionScheme.slideSpec: SpringSpec<Float>
+    get() = spring(
+        dampingRatio = Spring.DampingRatioNoBouncy,
+        stiffness = (fastSpatialSpec<Float>() as SpringSpec<Float>).stiffness,
+        visibilityThreshold = 0.001f,
+    )
 
 @Serializable
 private data class LicenseText(val file: String) : NavKey
@@ -85,18 +101,11 @@ internal fun AppNavigation(
     }
 
     CodecTheme(navigationOverlay = overlay.takeIf { showingTabs }) {
-        val maxTabPosition = TopLevelPage.entries.lastIndex.toFloat()
-        val animatedPosition = animateFloatAsState(
+        val tabPosition = animateFloatAsState(
             selectedTab.ordinal.toFloat(),
-            animationSpec = if (showingTabs) {
-                // Keep pace with the capsule's initial travel without overshooting a page.
-                spring(stiffness = 1600f, visibilityThreshold = 0.001f)
-            } else snap(),
+            animationSpec = if (showingTabs) MaterialTheme.motionScheme.slideSpec else snap(),
             label = "tab-strip-position",
         )
-        val tabPosition = remember(animatedPosition, maxTabPosition) {
-            derivedStateOf { animatedPosition.value.coerceIn(0f, maxTabPosition) }
-        }
 
         val outerInsets = WindowInsets.systemBars.union(WindowInsets.displayCutout)
             .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)

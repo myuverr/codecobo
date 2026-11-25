@@ -48,7 +48,9 @@ internal fun TopLevelTrack(
         val panes = measurables.map { it.measure(constraints) }
         val width = constraints.maxWidth
         layout(width, constraints.maxHeight) {
-            val offset = (position.value * width).roundToInt()
+            // A retargeted spring keeps its velocity and can carry past the ends, where the strip
+            // would show bare background instead of a neighbour.
+            val offset = (position.value.coerceIn(0f, (panes.size - 1).toFloat()) * width).roundToInt()
             panes.forEachIndexed { index, pane -> pane.placeRelative(index * width - offset, 0) }
         }
     }
