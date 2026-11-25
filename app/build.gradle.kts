@@ -14,13 +14,13 @@ dependencyLocking {
 
 android {
     namespace = "com.myuverr.codecobo"
-    compileSdk = 37
-    buildToolsVersion = "36.0.0"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    buildToolsVersion = libs.versions.android.buildTools.get()
 
     defaultConfig {
         applicationId = "com.myuverr.codecobo"
-        minSdk = 33
-        targetSdk = 37
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 3
         versionName = "0.2.0"
     }
