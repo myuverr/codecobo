@@ -13,22 +13,26 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.sp
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass.Companion.HEIGHT_DP_MEDIUM_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import androidx.window.core.layout.computeWindowSizeClass
 
 internal enum class WindowTier(val textScale: Float) {
     COMPACT(1f), MEDIUM(1.10f), EXPANDED(1.20f);
 
     companion object {
-        /** Breakpoints for the expanded layout, shared by the window tier and the wide-pane check. */
-        val ExpandedMinWidth = 840.dp
-        val ExpandedMinHeight = 480.dp
-        private val MediumMinWidth = 600.dp
-        private val MediumMinHeight = 480.dp
-
-        fun forWindow(widthDp: Float, heightDp: Float): WindowTier = when {
-            !widthDp.isFinite() || !heightDp.isFinite() ||
-                widthDp < MediumMinWidth.value || heightDp < MediumMinHeight.value -> COMPACT
-            widthDp < ExpandedMinWidth.value -> MEDIUM
-            else -> EXPANDED
+        /** AndroidX Large and Extra Large widths fold into EXPANDED instead of adding tiers. */
+        fun forWindow(widthDp: Float, heightDp: Float): WindowTier {
+            // Unmeasured sizes and a zero density arrive here as NaN or infinity.
+            if (!widthDp.isFinite() || !heightDp.isFinite()) return COMPACT
+            val sizeClass = WindowSizeClass.BREAKPOINTS_V2.computeWindowSizeClass(widthDp, heightDp)
+            return when {
+                sizeClass.isAtLeastBreakpoint(WIDTH_DP_EXPANDED_LOWER_BOUND, HEIGHT_DP_MEDIUM_LOWER_BOUND) -> EXPANDED
+                sizeClass.isAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND, HEIGHT_DP_MEDIUM_LOWER_BOUND) -> MEDIUM
+                else -> COMPACT
+            }
         }
     }
 }

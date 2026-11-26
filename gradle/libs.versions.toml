@@ -17,6 +17,7 @@ annotations = "1.11.0"
 material3 = "1.5.0"
 activity = "1.13.0"
 navigation3 = "1.2.2"
+window = "1.5.1"
 lottie = "6.7.1"
 junit = "4.13.2"
 
@@ -32,6 +33,7 @@ material3 = { module = "androidx.compose.material3:material3", version.ref = "ma
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity" }
 navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
+window-core = { module = "androidx.window:window-core", version.ref = "window" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 
 [plugins]
