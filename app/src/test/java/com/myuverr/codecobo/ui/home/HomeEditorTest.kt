@@ -37,13 +37,6 @@ class HomeEditorTest {
     }
 
     @Test
-    fun invalidatingTheEditorReplacesItsOldDraftWithActualOutput() {
-        val invalidated = draft.reconcile(screen(revision = 2))
-
-        assertEquals(CodecRequest(1, 1, 1, 2, 0), invalidated.request(aacCapabilities))
-    }
-
-    @Test
     fun clearingTheSelectedDeviceRemovesTheSubmittableDraft() {
         val cleared = draft.reconcile(screen(address = null))
 
@@ -56,18 +49,16 @@ class HomeEditorTest {
         val v5 = CodecCapability(8, "LHDC V5", 2 or 8 or 32, 1 or 2, 1 or 2)
         val v3 = CodecCapability(7, "LHDC V3/V4", 2 or 8, 1 or 2, 1 or 2)
         val snapshot = Snapshot(CodecState(8, 8, 2, 2, -1), "LHDC V5", listOf(v5, v3))
-        val initial = HomeState().reconcile(screen(snapshot = snapshot), null, false)
-        assertEquals(CodecRequest(8, 8, 2, 2, 0), initial.editor.request(initial.capabilities))
-        val draft = initial.editParameters { it.selectRate(32, initial.capabilities) }
-            .editParameters { it.selectBits(1, initial.capabilities) }
+        val capabilities = snapshot.capabilities()
+        val initial = HomeEditor().reconcile(screen(snapshot = snapshot))
+        assertEquals(CodecRequest(8, 8, 2, 2, 0), initial.request(capabilities))
+        val draft = initial.selectRate(32, capabilities).selectBits(1, capabilities)
 
-        val switched = draft.editParameters { it.selectCodec(7, draft.capabilities) }
-        assertEquals(CodecRequest(7, 2, 1, 2, 0), switched.editor.request(switched.capabilities))
+        val switched = draft.selectCodec(7, capabilities)
+        assertEquals(CodecRequest(7, 2, 1, 2, 0), switched.request(capabilities))
 
-        val returned = switched.editParameters { it.selectCodec(8, switched.capabilities) }
-        assertEquals(CodecRequest(8, 32, 1, 2, 0), returned.editor.request(returned.capabilities))
-        assertEquals(8, returned.actual?.sampleRate())
-        assertEquals(2, returned.actual?.bitsPerSample())
+        val returned = switched.selectCodec(8, capabilities)
+        assertEquals(CodecRequest(8, 32, 1, 2, 0), returned.request(capabilities))
     }
 
     @Test
@@ -77,16 +68,16 @@ class HomeEditorTest {
         val only24 = CodecCapability(4, "LDAC", 2, 2, 2)
         val capabilities = listOf(both, only16, only24)
         val snapshot = Snapshot(CodecState(8, 2, 2, 2, -1), "LHDC V5", capabilities)
-        val initial = HomeState().reconcile(screen(snapshot = snapshot), null, false)
-        fun HomeState.switchTo(type: Int) = editParameters { it.selectCodec(type, capabilities) }
-        fun HomeState.targetBits() = editor.request(capabilities)?.bitsPerSample()
+        val initial = HomeEditor().reconcile(screen(snapshot = snapshot))
+        fun HomeEditor.switchTo(type: Int) = selectCodec(type, capabilities)
+        fun HomeEditor.targetBits() = request(capabilities)?.bitsPerSample()
 
         val fallback16 = initial.switchTo(7)
         assertEquals(1, fallback16.targetBits())
         val returned = fallback16.switchTo(8)
         assertEquals(2, returned.targetBits())
 
-        val manual = returned.editParameters { it.selectBits(1, capabilities) }
+        val manual = returned.selectBits(1, capabilities)
         val fallback24 = manual.switchTo(4)
         assertEquals(2, fallback24.targetBits())
         assertEquals(1, fallback24.switchTo(8).targetBits())
@@ -110,13 +101,12 @@ class HomeEditorTest {
 
     private fun screen(
         address: String? = this.address,
-        revision: Long = 1,
         snapshot: Snapshot = Snapshot(aac44State, "AAC", aacCapabilities),
     ) = ScreenState(
         address?.let { listOf(DeviceInfo(it, "Headphones", true)) }.orEmpty(),
         address,
         snapshot.takeIf { address != null },
         false, true, ScreenState.AccessMode.SYSTEM, false, 0,
-        ScreenState.OperationFailure.NONE, "", revision, false, null,
+        ScreenState.OperationFailure.NONE, "", 1, false, null,
     )
 }

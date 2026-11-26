@@ -7,6 +7,7 @@ import com.myuverr.codecobo.core.AudioParameters
 import com.myuverr.codecobo.core.CodecCapability
 import com.myuverr.codecobo.core.CodecRequest
 import com.myuverr.codecobo.core.CodecRules
+import java.io.Serializable
 
 internal val CodecCapability.rates get() = CodecRules.rates(sampleRateMask())
 internal val CodecCapability.bits get() = AudioParameters.bits(bitsPerSampleMask())
@@ -25,18 +26,13 @@ internal data class HomeEditor(
     val deviceAddress: String? = null,
     val codecType: Int? = null,
     val sampleRate: Int? = null,
-    val revision: Long = -1,
     val bitsPerSample: Int? = null,
     val channelMode: Int? = null,
     val ldacQuality: Long? = null,
-) {
+) : Serializable {
     fun reconcile(screen: ScreenState): HomeEditor {
-        val address = screen.selectedAddress()
-        val invalidated = deviceAddress != address ||
-            (revision >= 0 && revision != screen.editorRevision())
-        val current = if (invalidated) HomeEditor(deviceAddress = address, revision = screen.editorRevision())
-            else copy(revision = screen.editorRevision())
-        if (address == null) return current.clearParameters()
+        val address = screen.selectedAddress() ?: return HomeEditor()
+        val current = if (deviceAddress == address) this else HomeEditor(deviceAddress = address)
         if (current.codecType != null) return current
         val snapshot = screen.snapshot() ?: return current
         if (snapshot.capabilities().isEmpty()) return current
@@ -61,9 +57,6 @@ internal data class HomeEditor(
         capability.channels.select(channelMode),
         capability.qualities.select(ldacQuality?.takeIf(AudioParameters::policyKnown)?.toInt())?.toLong(),
     )
-
-    fun clearParameters() = copy(codecType = null, sampleRate = null,
-        bitsPerSample = null, channelMode = null, ldacQuality = null)
 
     fun selectCodec(type: Int, capabilities: List<CodecCapability>): HomeEditor {
         if (type == codecType || capabilities.none { it.type() == type }) return this

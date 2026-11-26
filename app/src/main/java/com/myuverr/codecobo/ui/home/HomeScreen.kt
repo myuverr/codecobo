@@ -93,7 +93,7 @@ internal fun HomeScreen(
     }
     if (choosingDevice) DevicePickerDialog(state, onDismiss = { choosingDevice = false }) { address ->
         choosingDevice = false
-        if (address != state.selectedAddress) actions.onDeviceSelected(address)
+        actions.onDeviceSelected(address)
     }
 }
 
