@@ -34,8 +34,7 @@ internal fun PageLayout(
         Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
             Column(Modifier.widthIn(max = type.pageMaxWidth).fillMaxSize()) {
                 TopAppBar(
-                    title = { Text(title, Modifier.semantics { heading() }, fontSize = 25.adaptiveSp,
-                        lineHeight = 32.adaptiveSp, fontWeight = FontWeight.SemiBold) },
+                    title = { PageTitle(title) },
                     // The app shell already applies system-bar and cutout insets.
                     windowInsets = WindowInsets(0, 0, 0, 0),
                     navigationIcon = {
@@ -57,6 +56,12 @@ internal fun PageLayout(
             }
         }
     }
+}
+
+@Composable
+internal fun PageTitle(title: String) {
+    Text(title, Modifier.semantics { heading() }, fontSize = 25.adaptiveSp,
+        lineHeight = 32.adaptiveSp, fontWeight = FontWeight.SemiBold)
 }
 
 @Composable

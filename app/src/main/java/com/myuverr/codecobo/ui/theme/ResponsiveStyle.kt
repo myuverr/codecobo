@@ -18,9 +18,16 @@ internal enum class WindowTier(val textScale: Float) {
     COMPACT(1f), MEDIUM(1.10f), EXPANDED(1.20f);
 
     companion object {
+        /** Breakpoints for the expanded layout, shared by the window tier and the wide-pane check. */
+        val ExpandedMinWidth = 840.dp
+        val ExpandedMinHeight = 480.dp
+        private val MediumMinWidth = 600.dp
+        private val MediumMinHeight = 480.dp
+
         fun forWindow(widthDp: Float, heightDp: Float): WindowTier = when {
-            !widthDp.isFinite() || !heightDp.isFinite() || widthDp < 600f || heightDp < 480f -> COMPACT
-            widthDp < 840f -> MEDIUM
+            !widthDp.isFinite() || !heightDp.isFinite() ||
+                widthDp < MediumMinWidth.value || heightDp < MediumMinHeight.value -> COMPACT
+            widthDp < ExpandedMinWidth.value -> MEDIUM
             else -> EXPANDED
         }
     }

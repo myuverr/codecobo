@@ -26,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.ui.theme.LocalWorkbenchColors
-import com.myuverr.codecobo.platform.BluetoothRepository.DeviceInfo
 
 @Composable
-internal fun DeviceSelector(state: HomeState, selected: DeviceInfo?, onClick: () -> Unit) {
+internal fun DeviceSelector(state: HomeState, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
+    val selected = state.selectedDevice
 
     val supporting: (@Composable () -> Unit)? = selected?.let {
         {
@@ -43,9 +43,9 @@ internal fun DeviceSelector(state: HomeState, selected: DeviceInfo?, onClick: ()
     ListItem(
         onClick = onClick, enabled = !state.busy,
         modifier = Modifier.fillMaxWidth().testTag("device").semantics { role = Role.Button },
-        shapes = deviceSelectorShapes(),
+        shapes = DeviceSelectorShapes,
         colors = deviceSelectorColors(),
-                leadingContent = {
+        leadingContent = {
             DeviceLeadingIcon(R.drawable.ic_home_headphones, Modifier.testTag("device-artwork"))
         },
         supportingContent = supporting,

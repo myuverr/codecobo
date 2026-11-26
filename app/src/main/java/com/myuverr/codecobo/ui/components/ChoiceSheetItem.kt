@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -15,13 +16,16 @@ import androidx.compose.ui.semantics.*
 import com.myuverr.codecobo.R
 
 private val ChoiceSheetShape = RoundedCornerShape(16.dp)
-internal val ChoiceSheetShapes = ListItemShapes(
-    shape = ChoiceSheetShape,
-    selectedShape = ChoiceSheetShape,
-    pressedShape = ChoiceSheetShape,
-    focusedShape = ChoiceSheetShape,
-    hoveredShape = ChoiceSheetShape,
-    draggedShape = ChoiceSheetShape,
+internal val ChoiceSheetShapes = staticListItemShapes(ChoiceSheetShape)
+
+/** Material 3 list items morph their corners when pressed; use this for rows that should only ripple. */
+internal fun staticListItemShapes(shape: Shape) = ListItemShapes(
+    shape = shape,
+    selectedShape = shape,
+    pressedShape = shape,
+    focusedShape = shape,
+    hoveredShape = shape,
+    draggedShape = shape,
 )
 
 @Composable
