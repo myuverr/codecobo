@@ -31,13 +31,16 @@ import com.myuverr.codecobo.ui.theme.LocalWorkbenchColors
 import com.myuverr.codecobo.ui.theme.LocalAppTypeScale
 import com.myuverr.codecobo.ui.theme.WorkbenchInfoShape
 
+/** Approximate glyphs reserved for the codec name before the artwork gets the remaining width. */
+private const val CodecNameReserve = 7
+
 @Composable
 internal fun ActualOutputCard(state: HomeState) {
     val audio = AudioText(LocalResources.current)
     val snapshot = state.connection?.snapshot()
     val colors = LocalWorkbenchColors.current
     val type = LocalAppTypeScale.current
-    val preferredTextWidth = with(LocalDensity.current) { type.codec.toDp() * 7f }
+    val preferredTextWidth = with(LocalDensity.current) { type.codec.toDp() * CodecNameReserve }
     val actualDescription = if (snapshot != null) {
         stringResource(R.string.home_actual_description, snapshot.codecName(), audio.rate(snapshot.actual().sampleRate())) + audio.suffix(snapshot.actual())
     } else stringResource(R.string.home_actual_unreadable_description)
@@ -60,15 +63,15 @@ internal fun ActualOutputCard(state: HomeState) {
                     if (snapshot == null) {
                         Text(stringResource(R.string.home_actual_unreadable), color = colors.onTint, fontSize = 21.adaptiveSp, lineHeight = 29.adaptiveSp, fontWeight = FontWeight.SemiBold)
                     } else {
-                        val name = snapshot.codecName()
+                        val codec = codecLabel(snapshot.codecName())
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
-                                if (name.startsWith("aptX ")) "aptX" else name,
+                                codec.family,
                                 Modifier.alignByBaseline(), color = colors.onTint, fontSize = 36.adaptiveSp,
                                 fontWeight = FontWeight.SemiBold, lineHeight = 40.adaptiveSp, letterSpacing = (-1).adaptiveSp,
                             )
-                            if (name.startsWith("aptX ")) {
-                                Text(name.removePrefix("aptX "), Modifier.alignByBaseline(), color = colors.onTint, fontSize = 20.adaptiveSp, lineHeight = 24.adaptiveSp)
+                            codec.variant?.let {
+                                Text(it, Modifier.alignByBaseline(), color = colors.onTint, fontSize = 20.adaptiveSp, lineHeight = 24.adaptiveSp)
                             }
                         }
                         Spacer(Modifier.height(7.dp))
@@ -88,9 +91,11 @@ internal fun ActualOutputCard(state: HomeState) {
                     }
                 }
                 Box(Modifier.size(104.dp * type.factor, 120.dp * type.factor)) {
+                    val artworkWidth = 180.dp * type.factor
                     HeadphoneIllustration(
+                        // Crop the artwork against the bottom-right corner instead of shrinking it.
                         Modifier.align(Alignment.BottomEnd).wrapContentSize(Alignment.BottomEnd, unbounded = true).offset(x = 55.dp * type.factor, y = 50.dp * type.factor)
-                            .size(180.dp * type.factor, 152.dp * type.factor).rotate(-8f),
+                            .size(artworkWidth, artworkWidth / HeadphoneArtworkAspectRatio).rotate(-8f),
                     )
                 }
             }

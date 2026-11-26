@@ -7,14 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import com.myuverr.codecobo.controller.ScreenState
 import com.myuverr.codecobo.core.CodecRequest
 import com.myuverr.codecobo.core.DeviceProfile
 import com.myuverr.codecobo.core.SubmissionIntent
-import com.myuverr.codecobo.ui.home.HomeEditor
+import com.myuverr.codecobo.ui.home.HomeActions
 import com.myuverr.codecobo.ui.home.HomeScreen
 import com.myuverr.codecobo.ui.home.HomeState
+import com.myuverr.codecobo.ui.home.ParameterKind
 import com.myuverr.codecobo.ui.home.SubmitTarget
 
 internal class HomePanel(private val actions: Actions) {
@@ -43,18 +46,18 @@ internal class HomePanel(private val actions: Actions) {
 
     @Composable
     fun Content(onOpenSettings: () -> Unit) {
-        HomeScreen(
-            state,
-            onDeviceSelected = ::selectDevice,
-            onCodecSelected = { type -> editParameters { it.selectCodec(type, state.capabilities) } },
-            onRateSelected = { rate -> editParameters { it.selectRate(rate, state.capabilities) } },
-            onOpenBluetooth = actions::openBluetooth,
-            onOpenSettings = onOpenSettings,
-            onRestoreChanged = ::setRestore,
-            onBitsSelected = { value -> editParameters { it.selectBits(value, state.capabilities) } },
-            onChannelSelected = { value -> editParameters { it.selectChannel(value, state.capabilities) } },
-            onQualitySelected = { value -> editParameters { it.selectQuality(value, state.capabilities) } },
-        )
+        val currentOpenSettings by rememberUpdatedState(onOpenSettings)
+        // Actions stay stable; openSettings is read through rememberUpdatedState.
+        val homeActions = remember {
+            HomeActions(
+                onDeviceSelected = ::selectDevice,
+                onParameterSelected = ::selectParameter,
+                onOpenBluetooth = actions::openBluetooth,
+                onOpenSettings = { currentOpenSettings() },
+                onRestoreChanged = ::setRestore,
+            )
+        }
+        HomeScreen(state, homeActions)
     }
 
     fun render(value: ScreenState, saved: DeviceProfile?, paused: Boolean) {
@@ -77,8 +80,17 @@ internal class HomePanel(private val actions: Actions) {
         else actions.selectDevice(address)
     }
 
-    private fun editParameters(change: (HomeEditor) -> HomeEditor) {
-        state = state.editParameters(change)
+    private fun selectParameter(kind: ParameterKind, value: Int) {
+        val capabilities = state.capabilities
+        state = state.editParameters {
+            when (kind) {
+                ParameterKind.CODEC -> it.selectCodec(value, capabilities)
+                ParameterKind.RATE -> it.selectRate(value, capabilities)
+                ParameterKind.BITS -> it.selectBits(value, capabilities)
+                ParameterKind.CHANNEL -> it.selectChannel(value, capabilities)
+                ParameterKind.QUALITY -> it.selectQuality(value, capabilities)
+            }
+        }
     }
 
     private fun setRestore(enabled: Boolean) {

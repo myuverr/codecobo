@@ -29,24 +29,15 @@ import com.myuverr.codecobo.ui.theme.LocalPageSurface
 import com.myuverr.codecobo.ui.theme.WindowTier
 import com.myuverr.codecobo.ui.components.FloatingScrollContent
 import com.myuverr.codecobo.ui.components.LocalFloatingNavigationClearance
+import com.myuverr.codecobo.ui.components.PageTitle
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreen(
     state: HomeState,
+    actions: HomeActions,
     modifier: Modifier = Modifier,
-    onDeviceSelected: (String) -> Unit,
-    onCodecSelected: (Int) -> Unit,
-    onRateSelected: (Int) -> Unit,
-    onOpenBluetooth: () -> Unit,
-    onOpenSettings: () -> Unit,
-    onRestoreChanged: (Boolean) -> Unit,
-    onBitsSelected: (Int) -> Unit,
-    onChannelSelected: (Int) -> Unit,
-    onQualitySelected: (Int) -> Unit,
 ) {
-    val connection = state.connection
-    val devices = connection?.devices().orEmpty()
-    val selected = devices.find { it.address() == connection?.selectedAddress() }
     val showEditor = state.canShowEditor
     val type = LocalAppTypeScale.current
     val navigationClearance = LocalFloatingNavigationClearance.current
@@ -55,19 +46,19 @@ internal fun HomeScreen(
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             BoxWithConstraints(Modifier.widthIn(max = type.homeMaxWidth).fillMaxSize()) {
                 // A capped pane may be narrower than the window typography tier.
-                val wide = type.tier == WindowTier.EXPANDED && maxWidth >= 840.dp && maxHeight >= 480.dp
+                val wide = type.tier == WindowTier.EXPANDED &&
+                    maxWidth >= WindowTier.ExpandedMinWidth && maxHeight >= WindowTier.ExpandedMinHeight
                 Column {
-                    Text(
-                        stringResource(R.string.app_name),
-                        Modifier.fillMaxWidth().heightIn(min = 62.dp).wrapContentHeight(Alignment.CenterVertically)
-                            .padding(horizontal = type.gutter, vertical = 7.dp),
-                        fontSize = 25.adaptiveSp, lineHeight = 32.adaptiveSp, fontWeight = FontWeight.SemiBold,
+                    TopAppBar(
+                        title = { PageTitle(stringResource(R.string.app_name)) },
+                        // The app shell already applies system-bar and cutout insets.
+                        windowInsets = WindowInsets(0, 0, 0, 0),
+                        // Keep the app bar on the animated page surface.
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = LocalPageSurface.current.value),
                     )
                     when {
                         showEditor && wide -> WideHomeEditor(
-                            state, selected, Modifier.weight(1f), { choosingDevice = true },
-                            onCodecSelected, onRateSelected, onOpenSettings, onRestoreChanged,
-                            onBitsSelected, onChannelSelected, onQualitySelected,
+                            state, Modifier.weight(1f), { choosingDevice = true }, actions,
                         )
                         showEditor -> Box(Modifier.weight(1f).fillMaxWidth()) {
                             FloatingScrollContent(navigationClearance) {
@@ -75,24 +66,16 @@ internal fun HomeScreen(
                                     Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                                         .padding(horizontal = type.gutter).padding(top = 7.dp, bottom = navigationClearance),
                                 ) {
-                                    DeviceSelector(state, selected) { choosingDevice = true }
+                                    DeviceSelector(state) { choosingDevice = true }
                                     Spacer(Modifier.height(11.dp))
-                                    if (selected != null) ActualOutputCard(state)
+                                    if (state.selectedDevice != null) ActualOutputCard(state)
                                     PendingTarget(state)
-                                    if (state.capabilities.isEmpty()) ReadPreparation(onOpenSettings)
-                                    else {
-                                        Spacer(Modifier.height(3.dp))
-                                        key(connection?.selectedAddress(), state.editor.deviceAddress) {
-                                            TargetConfiguration(state, onCodecSelected, onRateSelected, onBitsSelected, onChannelSelected, onQualitySelected)
-                                        }
-                                    }
-                                    Spacer(Modifier.height(12.dp))
-                                    if (selected != null) RestorePreference(state, onRestoreChanged)
-                                    Spacer(Modifier.height(12.dp))
+                                    if (state.capabilities.isNotEmpty()) Spacer(Modifier.height(3.dp))
+                                    ParameterPane(state, actions)
                                 }
                             }
                         }
-                        else -> OfflineHome(state, Modifier.weight(1f), onOpenBluetooth, onOpenSettings)
+                        else -> OfflineHome(state, Modifier.weight(1f), actions.onOpenBluetooth, actions.onOpenSettings)
                     }
                 }
             }
@@ -100,8 +83,23 @@ internal fun HomeScreen(
     }
     if (choosingDevice) DevicePickerDialog(state, onDismiss = { choosingDevice = false }) { address ->
         choosingDevice = false
-        if (address != connection?.selectedAddress()) onDeviceSelected(address)
+        if (address != state.selectedAddress) actions.onDeviceSelected(address)
     }
+}
+
+/**
+ * Target controls and the restore preference, shared by the scrolling page and the wide pane.
+ * Keying by device restarts the selection animation instead of carrying it across a device switch.
+ */
+@Composable
+internal fun ParameterPane(state: HomeState, actions: HomeActions) {
+    if (state.capabilities.isEmpty()) ReadPreparation(actions.onOpenSettings)
+    else key(state.selectedAddress, state.editor.deviceAddress) {
+        TargetConfiguration(state, actions)
+    }
+    Spacer(Modifier.height(12.dp))
+    if (state.selectedDevice != null) RestorePreference(state, actions.onRestoreChanged)
+    Spacer(Modifier.height(12.dp))
 }
 
 @Composable

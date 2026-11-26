@@ -15,11 +15,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.myuverr.codecobo.ui.components.staticListItemShapes
 import com.myuverr.codecobo.ui.theme.LocalWorkbenchColors
 
 internal val DeviceArtworkShape = RoundedCornerShape(16.dp, 12.dp, 19.dp, 12.dp)
-@Composable
-internal fun deviceSelectorShapes(): ListItemShapes = ListItemDefaults.shapes(shape = CircleShape)
+
+internal val DeviceSelectorShapes = staticListItemShapes(CircleShape)
 
 @Composable
 internal fun deviceSelectorColors() =

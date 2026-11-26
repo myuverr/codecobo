@@ -33,8 +33,10 @@ internal data class HomeState(
     val channels get() = selectedCapability?.channels.orEmpty()
     val qualities get() = selectedCapability?.qualities.orEmpty()
     val busy get() = connection?.busy() == true
+    val selectedAddress get() = connection?.selectedAddress()
+    val selectedDevice get() = connection?.devices()?.firstOrNull { it.address() == selectedAddress }
     val canShowEditor get() = connection?.let { it.bluetoothPermission() && it.devices().isNotEmpty() } == true
-    val changingDevice get() = editor.deviceAddress != null && editor.deviceAddress != connection?.selectedAddress()
+    val changingDevice get() = editor.deviceAddress != null && editor.deviceAddress != selectedAddress
     val canEditDraft get() = !changingDevice && connection?.canEdit() == true
     val canPrepare get() = !changingDevice && capabilities.isEmpty() && connection?.canPrepareEdit() == true
     val restoreEnabled get() = restoreDraft ?: (saved?.enabled() == true)
@@ -46,13 +48,13 @@ internal data class HomeState(
 
     private val draftAttached get() = !changingDevice && !savedDraftUnavailable
     private val selectedDeviceAvailable get() = connection?.let {
-        it.bluetoothPermission() && it.modeAvailable() && it.devices().any { device -> device.address() == it.selectedAddress() }
+        it.bluetoothPermission() && it.modeAvailable() && selectedDevice != null
     } == true
 
     val savedTargetMatches get() = !restorePending && submission == SubmissionIntent.NONE &&
         draftAttached && selectedDeviceAvailable && capabilities.isNotEmpty() && connection?.savePending() != true &&
         saved?.let {
-            it.address() == connection?.selectedAddress() && CodecRules.savedMatches(request, it.request()) &&
+            it.address() == selectedAddress && CodecRules.savedMatches(request, it.request()) &&
                 CodecRules.matches(it.request(), connection?.snapshot()?.actual())
         } == true
 
@@ -62,7 +64,7 @@ internal data class HomeState(
             editor.codecType == null && editor.sampleRate == null
 
     val currentSubmission get() = connection?.submissionFeedback()?.takeIf {
-        draftAttached && selectedDeviceAvailable && it.address() == connection.selectedAddress() && matchesReceipt(it)
+        draftAttached && selectedDeviceAvailable && it.address() == selectedAddress && matchesReceipt(it)
     }
     val completedTargetMatches get() = currentSubmission?.let { receipt ->
         !restorePending && connection?.savePending() != true && submission == SubmissionIntent.NONE &&
@@ -109,14 +111,14 @@ internal data class HomeState(
     }
 
     fun selectDevice(address: String): HomeState {
-        if (busy || address == connection?.selectedAddress()) return this
+        if (busy || address == selectedAddress) return this
         return copy(editor = HomeEditor(deviceAddress = address), pendingSaved = null,
             savedDraftUnavailable = false, restoreDraft = null, restoreAddress = null)
     }
 
     fun editSaved(address: String, request: CodecRequest?): HomeState {
         if (busy) return this
-        val sameDevice = connection?.selectedAddress() == address
+        val sameDevice = selectedAddress == address
         return copy(pendingSaved = request?.let { SavedDraft(address, it) },
             editor = if (sameDevice) editor else HomeEditor(deviceAddress = address),
             savedDraftUnavailable = sameDevice && savedDraftUnavailable)
@@ -127,53 +129,87 @@ internal data class HomeState(
 
     fun setRestore(enabled: Boolean): HomeState {
         if (busy || changingDevice) return this
-        val address = connection?.selectedAddress() ?: return this
+        val address = selectedAddress ?: return this
         val draft = enabled.takeUnless { it == (saved?.enabled() == true) }
         return copy(restoreDraft = draft, restoreAddress = address.takeIf { draft != null })
     }
 
     fun save(out: Bundle) {
-        listOf("targetDevice", "targetCodec", "targetRate", "targetBits", "targetChannel", "targetQuality",
-            "restoreDraft.device", "restoreDraft.enabled", "savedDraft.device", "savedDraft.codec",
-            "savedDraft.rate", "savedDraft.bits", "savedDraft.channel", "savedDraft.quality").forEach(out::remove)
+        Keys.All.forEach(out::remove)
         // Submitted targets are replaced by readback after recreation.
         if (connection?.savePending() == true) return
         if (restoreAddress != null && restoreDraft != null) {
-            out.putString("restoreDraft.device", restoreAddress)
-            out.putBoolean("restoreDraft.enabled", restoreDraft)
+            out.putString(Keys.RestoreDevice, restoreAddress)
+            out.putBoolean(Keys.RestoreEnabled, restoreDraft)
         }
         pendingSaved?.let {
-            out.putString("savedDraft.device", it.address)
-            out.putInt("savedDraft.codec", it.request.type())
-            out.putInt("savedDraft.rate", it.request.sampleRate())
-            out.putInt("savedDraft.bits", it.request.bitsPerSample())
-            out.putInt("savedDraft.channel", it.request.channelMode())
-            out.putLong("savedDraft.quality", it.request.ldacQuality())
+            out.putString(Keys.SavedDevice, it.address)
+            out.putInt(Keys.SavedCodec, it.request.type())
+            out.putInt(Keys.SavedRate, it.request.sampleRate())
+            out.putInt(Keys.SavedBits, it.request.bitsPerSample())
+            out.putInt(Keys.SavedChannel, it.request.channelMode())
+            out.putLong(Keys.SavedQuality, it.request.ldacQuality())
         }
-        out.putString("targetDevice", editor.deviceAddress)
-        editor.codecType?.let { out.putInt("targetCodec", it) }
-        editor.sampleRate?.let { out.putInt("targetRate", it) }
-        editor.bitsPerSample?.let { out.putInt("targetBits", it) }
-        editor.channelMode?.let { out.putInt("targetChannel", it) }
-        editor.ldacQuality?.let { out.putLong("targetQuality", it) }
+        out.putString(Keys.TargetDevice, editor.deviceAddress)
+        out.putOptionalInt(Keys.TargetCodec, editor.codecType)
+        out.putOptionalInt(Keys.TargetRate, editor.sampleRate)
+        out.putOptionalInt(Keys.TargetBits, editor.bitsPerSample)
+        out.putOptionalInt(Keys.TargetChannel, editor.channelMode)
+        out.putOptionalLong(Keys.TargetQuality, editor.ldacQuality)
     }
 
     fun restore(bundle: Bundle): HomeState {
-        val address = ProfileStore.address(bundle.getString("restoreDraft.device"))
-        val pending = ProfileStore.address(bundle.getString("savedDraft.device"))?.let {
-            if (bundle.containsKey("savedDraft.codec") && bundle.containsKey("savedDraft.rate"))
-                SavedDraft(it, CodecRequest(bundle.getInt("savedDraft.codec"), bundle.getInt("savedDraft.rate"),
-                    bundle.getInt("savedDraft.bits"), bundle.getInt("savedDraft.channel"), bundle.getLong("savedDraft.quality")))
+        val address = ProfileStore.address(bundle.getString(Keys.RestoreDevice))
+        val pending = ProfileStore.address(bundle.getString(Keys.SavedDevice))?.let {
+            if (bundle.containsKey(Keys.SavedCodec) && bundle.containsKey(Keys.SavedRate))
+                SavedDraft(it, CodecRequest(bundle.getInt(Keys.SavedCodec), bundle.getInt(Keys.SavedRate),
+                    bundle.getInt(Keys.SavedBits), bundle.getInt(Keys.SavedChannel),
+                    bundle.getLong(Keys.SavedQuality)))
             else null
         }
         return copy(restoreAddress = address,
-            restoreDraft = if (address != null && bundle.containsKey("restoreDraft.enabled")) bundle.getBoolean("restoreDraft.enabled") else null,
+            restoreDraft = if (address != null && bundle.containsKey(Keys.RestoreEnabled))
+                bundle.getBoolean(Keys.RestoreEnabled) else null,
             pendingSaved = pending, editor = HomeEditor(
-                deviceAddress = bundle.getString("targetDevice"),
-                codecType = if (bundle.containsKey("targetCodec")) bundle.getInt("targetCodec") else null,
-                sampleRate = if (bundle.containsKey("targetRate")) bundle.getInt("targetRate") else null,
-                bitsPerSample = if (bundle.containsKey("targetBits")) bundle.getInt("targetBits") else null,
-                channelMode = if (bundle.containsKey("targetChannel")) bundle.getInt("targetChannel") else null,
-                ldacQuality = if (bundle.containsKey("targetQuality")) bundle.getLong("targetQuality") else null))
+                deviceAddress = bundle.getString(Keys.TargetDevice),
+                codecType = bundle.getOptionalInt(Keys.TargetCodec),
+                sampleRate = bundle.getOptionalInt(Keys.TargetRate),
+                bitsPerSample = bundle.getOptionalInt(Keys.TargetBits),
+                channelMode = bundle.getOptionalInt(Keys.TargetChannel),
+                ldacQuality = bundle.getOptionalLong(Keys.TargetQuality)))
     }
 }
+
+/** Bundle keys are listed once so save, restore and cleanup cannot drift apart. */
+private object Keys {
+    const val RestoreDevice = "restoreDraft.device"
+    const val RestoreEnabled = "restoreDraft.enabled"
+    const val SavedDevice = "savedDraft.device"
+    const val SavedCodec = "savedDraft.codec"
+    const val SavedRate = "savedDraft.rate"
+    const val SavedBits = "savedDraft.bits"
+    const val SavedChannel = "savedDraft.channel"
+    const val SavedQuality = "savedDraft.quality"
+    const val TargetDevice = "targetDevice"
+    const val TargetCodec = "targetCodec"
+    const val TargetRate = "targetRate"
+    const val TargetBits = "targetBits"
+    const val TargetChannel = "targetChannel"
+    const val TargetQuality = "targetQuality"
+
+    val All = listOf(RestoreDevice, RestoreEnabled, SavedDevice, SavedCodec, SavedRate, SavedBits,
+        SavedChannel, SavedQuality, TargetDevice, TargetCodec, TargetRate, TargetBits, TargetChannel,
+        TargetQuality)
+}
+
+private fun Bundle.putOptionalInt(key: String, value: Int?) {
+    if (value != null) putInt(key, value)
+}
+
+private fun Bundle.getOptionalInt(key: String): Int? = if (containsKey(key)) getInt(key) else null
+
+private fun Bundle.putOptionalLong(key: String, value: Long?) {
+    if (value != null) putLong(key, value)
+}
+
+private fun Bundle.getOptionalLong(key: String): Long? = if (containsKey(key)) getLong(key) else null
