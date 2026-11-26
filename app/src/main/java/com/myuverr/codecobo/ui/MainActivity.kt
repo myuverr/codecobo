@@ -11,33 +11,35 @@ import android.content.ClipboardManager
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.controller.CodecController
 import com.myuverr.codecobo.controller.ScreenState
-import com.myuverr.codecobo.core.CodecRequest
-import com.myuverr.codecobo.core.SubmissionIntent
 import com.myuverr.codecobo.platform.BatterySettings
 import com.myuverr.codecobo.platform.DevicePresence
 import com.myuverr.codecobo.platform.ProfileFacts
 import com.myuverr.codecobo.platform.ProfileStore
 import com.myuverr.codecobo.platform.RestoreService
 import com.myuverr.codecobo.platform.RestoreTrace
+import com.myuverr.codecobo.ui.home.HomeSubmission
+import com.myuverr.codecobo.ui.home.HomeViewModel
 import com.myuverr.codecobo.ui.management.ManagementLoader
 import com.myuverr.codecobo.ui.management.ManagementReader
 import com.myuverr.codecobo.ui.theme.prepareWindowTheme
 import java.util.concurrent.atomic.AtomicInteger
 
-internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPanel.Actions, SettingsPanel.Actions {
+internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, SettingsPanel.Actions {
     private val uiTraceId = RestoreTrace.id()
-    private val home = HomePanel(this)
+    private val home by viewModels<HomeViewModel>()
     private lateinit var library: LibraryPanel
     private lateinit var settings: SettingsPanel
     private lateinit var controller: CodecController
@@ -54,7 +56,7 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
         RestoreTrace.event(this, uiTraceId, "activity", "activity.created", "")
         library = LibraryPanel(this, this)
         settings = SettingsPanel(this, this)
-        savedInstanceState?.let(home::restore)
+        home.attachController()
         profileFacts = ProfileStore(this).facts()
         controller = CodecController(this, savedInstanceState?.getString("selectedDevice"), ::render)
         management = ManagementLoader(ManagementReader(this)) { data ->
@@ -71,17 +73,24 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
                 management.refresh()
             }
         }
-        setContent { AppNavigation(home, library, settings, ::refreshManagement, ::edit) }
+        setContent {
+            AppNavigation(
+                home, library, settings,
+                refreshManagement = ::refreshManagement,
+                onSelectDevice = controller::select,
+                onSubmit = ::submit,
+                onOpenBluetooth = ::openBluetooth,
+            )
+        }
         render(controller.state())
         if (savedInstanceState == null && !getPreferences(MODE_PRIVATE).getBoolean("askedBluetooth", false)) nearby()
     }
 
     private fun render(state: ScreenState) {
         if (closed) return
-        profileFacts.value?.let { facts ->
-            home.render(state, facts.profile(state.selectedAddress()), facts.paused)
-            library.render(state, facts.paused)
-        }
+        val facts = profileFacts.value
+        home.updateSources(state, devicesKnown = controller.deviceListKnown, facts = facts)
+        if (facts != null) library.render(state, facts.paused)
         settings.render(state)
         if (::notificationControl.isInitialized) settings.renderNotification(notificationControl.state())
         val accessMode = state.accessMode()
@@ -91,12 +100,11 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
         lastAccessMode = accessMode
     }
 
-    override fun selectDevice(address: String) = controller.select(address)
-
-    override fun submit(request: CodecRequest, intent: SubmissionIntent, enableRestore: Boolean) =
-        controller.submit(request, intent, enableRestore, ::openAssociation, ::submissionCompleted)
-
-    override fun prepareEdit() = controller.prepareEdit(::openAssociation, ::submissionCompleted)
+    private fun submit(submission: HomeSubmission) = when (submission) {
+        HomeSubmission.Prepare -> controller.prepareEdit(::openAssociation, ::submissionCompleted)
+        is HomeSubmission.Submit -> controller.submit(submission.request, submission.intent,
+            submission.enableRestore, ::openAssociation, ::submissionCompleted)
+    }
 
     private fun submissionCompleted(text: String) {
         if (closed) return
@@ -113,18 +121,6 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
     }
 
     override fun paused(paused: Boolean) = controller.pauseRestore(paused)
-
-    private fun edit(address: String): Boolean {
-        val state = controller.state()
-        if (state.busy()) return false
-        if (state.devices().none { it.address().equals(address, ignoreCase = true) }) {
-            library.showError(getString(R.string.library_connection_changed))
-            return false
-        }
-        val facts = profileFacts.value ?: return false
-        home.editSaved(address, facts.profile(address)?.request())
-        return true
-    }
 
     override fun remove(address: String, revision: Long) = controller.removeProfile(address, revision)
 
@@ -143,7 +139,7 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
 
     override fun openProjectLink(url: String) {
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
         } catch (_: ActivityNotFoundException) {
             showProjectLinkError(url)
         } catch (_: SecurityException) {
@@ -160,7 +156,7 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
         getSystemService(ClipboardManager::class.java).setPrimaryClip(clip)
     }
 
-    override fun openBluetooth() = openSettings(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
+    private fun openBluetooth() = openSettings(Intent(Settings.ACTION_BLUETOOTH_SETTINGS))
 
     override fun onResume() {
         super.onResume()
@@ -190,12 +186,12 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
                 .setTitle(R.string.notice_nearby_permission_denied)
                 .setMessage(R.string.notice_nearby_permission_manual)
                 .setPositiveButton(R.string.notice_open_app_settings) { _, _ ->
-                    openSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
+                    openSettings(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
                 }
                 .setNegativeButton(R.string.notice_cancel, null)
                 .show()
         } else {
-            preferences.edit().putBoolean("askedBluetooth", true).apply()
+            preferences.edit { putBoolean("askedBluetooth", true) }
             requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), BLUETOOTH_PERMISSION)
         }
     }
@@ -256,7 +252,6 @@ internal class MainActivity : ComponentActivity(), HomePanel.Actions, LibraryPan
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        home.save(outState)
         notificationControl.save(outState)
         outState.putString("selectedDevice", controller.state().selectedAddress())
     }

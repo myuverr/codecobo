@@ -22,6 +22,7 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -30,13 +31,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import com.myuverr.codecobo.R
 import com.myuverr.codecobo.ui.components.FloatingOverlayState
+import com.myuverr.codecobo.ui.home.EditSavedResult
+import com.myuverr.codecobo.ui.home.HomeActions
+import com.myuverr.codecobo.ui.home.HomeScreen
+import com.myuverr.codecobo.ui.home.HomeSubmission
+import com.myuverr.codecobo.ui.home.HomeViewModel
+import com.myuverr.codecobo.ui.home.SubmitTarget
 import com.myuverr.codecobo.ui.library.DeviceKey
 import com.myuverr.codecobo.ui.settings.AssetTextScreen
 import com.myuverr.codecobo.ui.settings.SettingsRoute
@@ -65,17 +74,31 @@ private data class LicenseText(val file: String) : NavKey
 
 @Composable
 internal fun AppNavigation(
-    home: HomePanel,
+    home: HomeViewModel,
     library: LibraryPanel,
     settings: SettingsPanel,
     refreshManagement: () -> Unit,
-    edit: (String) -> Boolean,
+    onSelectDevice: (String) -> Unit,
+    onSubmit: (HomeSubmission) -> Unit,
+    onOpenBluetooth: () -> Unit,
 ) {
     val backStack = rememberNavBackStack(MainTabs)
     var selectedTab by rememberSaveable { mutableStateOf(TopLevelPage.CONTROL) }
     val currentRoute = backStack.last()
     val showingTabs = currentRoute == MainTabs
     val overlay = remember { FloatingOverlayState() }
+    val homeActions = remember(home, backStack, onSelectDevice, onOpenBluetooth) {
+        HomeActions(
+            onDeviceSelected = { address -> if (home.selectDevice(address)) onSelectDevice(address) },
+            onParameterSelected = home::selectParameter,
+            onOpenBluetooth = onOpenBluetooth,
+            onOpenSettings = {
+                selectedTab = TopLevelPage.SETTINGS
+                backStack.add(SettingsRoute.ACCESS)
+            },
+            onRestoreChanged = home::setRestore,
+        )
+    }
 
     fun goBack() {
         // Two back events can arrive before NavDisplay observes that the root is active.
@@ -115,23 +138,26 @@ internal fun AppNavigation(
                 listOf(rememberSaveableStateHolderNavEntryDecorator()),
                 entryProvider {
                     entry(MainTabs) {
+                        val homeState = home.state
                         Box(Modifier.fillMaxSize()) {
                             TopLevelTrack(selectedTab.takeIf { showingTabs }, tabPosition) { page ->
                                 when (page) {
-                                    TopLevelPage.CONTROL -> home.Content {
-                                        selectedTab = TopLevelPage.SETTINGS
-                                        backStack.add(SettingsRoute.ACCESS)
-                                    }
+                                    TopLevelPage.CONTROL -> HomeScreen(homeState, homeActions)
                                     TopLevelPage.HEADPHONES -> library.Root { backStack.add(it) }
                                     TopLevelPage.SETTINGS -> settingsPage(SettingsRoute.ROOT)
                                 }
                             }
                             if (showingTabs) {
-                                val showAction = selectedTab == TopLevelPage.CONTROL && home.canShowEditor
+                                val showAction = selectedTab == TopLevelPage.CONTROL && homeState.canShowEditor
                                 AppNavigationBar(
                                     selected = selectedTab,
                                     showAction = showAction,
-                                    action = { home.PrimaryAction(showAction) },
+                                    action = {
+                                        // A different device starts with a fresh save animation.
+                                        key(homeState.selectedAddress, homeState.editor.deviceAddress) {
+                                            SubmitTarget(homeState, { home.submission()?.let(onSubmit) }, showAction)
+                                        }
+                                    },
                                     modifier = Modifier.align(Alignment.BottomCenter)
                                         .padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
                                         .onSizeChanged { overlay.navigationMeasured(it.height) },
@@ -141,10 +167,16 @@ internal fun AppNavigation(
                         }
                     }
                     entry<DeviceKey> { device ->
+                        val connectionChanged = stringResource(R.string.library_connection_changed)
                         library.Details(device, onBack = ::goBack) { address ->
-                            if (edit(address)) {
-                                selectedTab = TopLevelPage.CONTROL
-                                backStack.subList(1, backStack.size).clear()
+                            when (val result = home.editSaved(address)) {
+                                is EditSavedResult.OpenHome -> {
+                                    result.deviceToSelect?.let(onSelectDevice)
+                                    selectedTab = TopLevelPage.CONTROL
+                                    backStack.subList(1, backStack.size).clear()
+                                }
+                                EditSavedResult.Disconnected -> library.showError(connectionChanged)
+                                EditSavedResult.Ignored -> Unit
                             }
                         }
                     }

@@ -2,15 +2,15 @@
 
 package com.myuverr.codecobo.ui.home
 
+import android.content.res.Resources
+import com.myuverr.codecobo.R
 import com.myuverr.codecobo.presentation.AudioText
 
-import com.myuverr.codecobo.R
-
-internal fun homePendingSummary(state: HomeState, resources: android.content.res.Resources): String? {
+internal fun homePendingSummary(state: HomeState, resources: Resources): String? {
     val audio = AudioText(resources)
     val parts = mutableListOf<String>()
-    val request = state.editor.request(state.capabilities)
-    val actual = state.connection?.snapshot()?.actual()
+    val request = state.request
+    val actual = state.actual
     val saved = state.saved?.request()
     val intent = state.submission
     if (request != null && (intent.applies() || intent.saves())) {
