@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
+    implementation(libs.window.core)
     implementation(libs.room.runtime)
     implementation(libs.lottie.compose)
     implementation(libs.shizuku.api)

@@ -20,7 +20,10 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass.Companion.HEIGHT_DP_MEDIUM_LOWER_BOUND
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import com.myuverr.codecobo.ui.theme.adaptiveSp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.ui.theme.LocalWorkbenchColors
@@ -30,6 +33,15 @@ import com.myuverr.codecobo.ui.theme.WindowTier
 import com.myuverr.codecobo.ui.components.FloatingScrollContent
 import com.myuverr.codecobo.ui.components.LocalFloatingNavigationClearance
 import com.myuverr.codecobo.ui.components.PageTitle
+
+/**
+ * Two columns need more than an EXPANDED window: the pane is capped by the home max width and already
+ * excludes system bars and cutouts, so a wide window can still leave too little room.
+ */
+internal fun showsWideHome(tier: WindowTier, paneWidth: Dp, paneHeight: Dp): Boolean =
+    tier == WindowTier.EXPANDED &&
+        paneWidth >= WIDTH_DP_EXPANDED_LOWER_BOUND.dp &&
+        paneHeight >= HEIGHT_DP_MEDIUM_LOWER_BOUND.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,9 +57,7 @@ internal fun HomeScreen(
     Surface(modifier.fillMaxSize(), color = LocalPageSurface.current.value) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             BoxWithConstraints(Modifier.widthIn(max = type.homeMaxWidth).fillMaxSize()) {
-                // A capped pane may be narrower than the window typography tier.
-                val wide = type.tier == WindowTier.EXPANDED &&
-                    maxWidth >= WindowTier.ExpandedMinWidth && maxHeight >= WindowTier.ExpandedMinHeight
+                val wide = showsWideHome(type.tier, maxWidth, maxHeight)
                 Column {
                     TopAppBar(
                         title = { PageTitle(stringResource(R.string.app_name)) },
