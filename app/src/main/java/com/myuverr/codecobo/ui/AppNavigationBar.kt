@@ -40,10 +40,10 @@ import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.ui.components.NavigationGlyph
 
-internal enum class TopLevelPage(val title: Int, val icon: Int, val selectedIcon: Int, val motion: Int) {
-    CONTROL(R.string.home_nav_control, R.drawable.ic_nav_home, R.drawable.ic_nav_home_selected, R.raw.nav_house_motion),
-    HEADPHONES(R.string.home_nav_headphones, R.drawable.ic_nav_library, R.drawable.ic_nav_library_selected, R.raw.nav_books_motion),
-    SETTINGS(R.string.home_nav_settings, R.drawable.ic_nav_settings, R.drawable.ic_nav_settings_selected, R.raw.nav_gear_six_motion),
+internal enum class TopLevelPage(val title: Int, val icon: Int, val selectedIcon: Int) {
+    CONTROL(R.string.home_nav_control, R.drawable.ic_nav_home, R.drawable.ic_nav_home_selected),
+    HEADPHONES(R.string.home_nav_headphones, R.drawable.ic_nav_library, R.drawable.ic_nav_library_selected),
+    SETTINGS(R.string.home_nav_settings, R.drawable.ic_nav_settings, R.drawable.ic_nav_settings_selected),
 }
 
 /**
@@ -84,10 +84,9 @@ internal fun AppNavigationBar(
                         onClick = { if (!pageSelected) onSelected(page) },
                         icon = {
                             NavigationGlyph(
-                                page.icon, page.selectedIcon, page.motion,
+                                page.icon, page.selectedIcon,
                                 selected = pageSelected, tint = LocalContentColor.current,
-                                modifier = Modifier.size(GlyphSize).navigationPulse(pageSelected)
-                                    .testTag("navigation-glyph-" + page.name),
+                                modifier = Modifier.size(GlyphSize).testTag("navigation-glyph-" + page.name),
                             )
                         },
                         label = {

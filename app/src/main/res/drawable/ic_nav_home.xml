@@ -1,5 +1,5 @@
 <!-- SPDX-License-Identifier: MIT -->
-<!-- Phosphor regular house @ 2b75f3ad12b420c9504ef05df8d2564a28f8500e; MIT. Static endpoint/fallback; see PHOSPHOR-MIT.txt. -->
+<!-- Icon Monks house (bold); MIT. See assets/licenses/ICON-MONKS-MIT.txt. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
-    <path android:fillColor="#FF000000" android:pathData="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z" />
+    <path android:fillColor="#FF000000" android:pathData="M20.03 123.2A12.01 12.01 0 0 0 36 135.31V208A12 12 0 0 0 48 220H208A12 12 0 0 0 220 208V135.31A11.98 11.98 0 0 0 231.9 114.97L135.9 30.97A12 12 0 0 0 120.1 30.97L24.1 114.97A12 12 0 0 0 20.03 123.2ZM196 115.45V196H160V164A32 32 0 0 0 105.37 141.37A32 32 0 0 0 96 164V196H60V115.45L128 55.95L196 115.45ZM122.34 158.34A8 8 0 0 1 136 164V196H120V164A8 8 0 0 1 122.34 158.34Z" />
 </vector>

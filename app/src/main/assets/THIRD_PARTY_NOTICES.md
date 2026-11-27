@@ -29,12 +29,15 @@ https://android.googlesource.com/platform/frameworks/base/+/android-16.0.0_r1/pa
 The headphone illustration and launcher icon are original project artwork,
 licensed under MPL 2.0.
 
-Duotone icons and Regular/Fill navigation icons use Phosphor paths —
-Copyright (c) 2023 Phosphor Icons — MIT.
-Navigation animation data is project-authored using these MIT-licensed contours.
+Duotone icons use Phosphor paths — Copyright (c) 2023 Phosphor Icons — MIT.
 
 https://github.com/phosphor-icons/core
 Reference: 2b75f3ad12b420c9504ef05df8d2564a28f8500e
+
+The navigation icons use Icon Monks paths — Copyright (c) 2026 Design Monks — MIT.
+
+https://github.com/designmonks-llc/icon-monks
+Reference: @icon-monks/core 0.4.3
 
 The save and package-check icons use Lucide paths — ISC.
 Lucide's accompanying Feather MIT attribution and notice are preserved.
