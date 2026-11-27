@@ -25,6 +25,13 @@ internal data class LibraryState(
     val connection: ScreenState? = null,
     val data: ManagementData = ManagementData(loading = true),
 ) {
+    /**
+     * Metadata reads can finish after the user changed the pause preference, so the newest
+     * preference from the audio state wins over the one carried by an older read.
+     */
+    fun withMetadata(metadata: ManagementData, latestPaused: Boolean?): LibraryState =
+        copy(data = metadata.copy(restorePaused = latestPaused ?: metadata.restorePaused))
+
     fun detail(key: DeviceKey): DeviceDetail? {
         val saved = data.profiles.find { sameAddress(it.address(), key.address) }
         val association = data.associations.find {
@@ -40,4 +47,5 @@ internal data class LibraryState(
     }
 }
 
-internal fun sameAddress(a: String?, b: String?) = a != null && b != null && a.equals(b, ignoreCase = true)
+internal fun sameAddress(a: String?, b: String?): Boolean =
+    a != null && b != null && a.equals(b, ignoreCase = true)
