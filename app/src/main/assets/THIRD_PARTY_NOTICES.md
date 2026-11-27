@@ -11,8 +11,6 @@ Third-party libraries and artwork retain their respective licenses.
   https://github.com/LSPosed/AndroidHiddenApiBypass
 - AndroidX Compose, Material 3, Activity, Room, SQLite and their dependencies —
   Android Open Source Project contributors — Apache 2.0.
-- Lottie Android and Lottie Compose 6.7.1 — Airbnb contributors — Apache 2.0.
-  https://github.com/airbnb/lottie-android
 - Kotlin, kotlinx.coroutines, kotlinx.atomicfu and JetBrains annotations —
   JetBrains and respective contributors — Apache 2.0.
 
@@ -35,8 +33,8 @@ https://github.com/phosphor-icons/core
 Reference: 2b75f3ad12b420c9504ef05df8d2564a28f8500e
 
 The navigation, save and package-check icons use Icon Monks paths —
-Copyright (c) 2026 Design Monks — MIT. The motion that inks the package-check
-glyph is project-authored from that geometry.
+Copyright (c) 2026 Design Monks — MIT. The package-check contour animation is
+project-authored from that geometry.
 
 https://github.com/designmonks-llc/icon-monks
 Reference: @icon-monks/core 0.4.3
@@ -50,4 +48,3 @@ Complete notices and license terms are included in the following assets:
 - licenses/Shizuku-MIT.txt
 - licenses/PHOSPHOR-MIT.txt
 - licenses/ICON-MONKS-MIT.txt
-- licenses/Lottie-Apache-2.0.txt
