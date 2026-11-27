@@ -30,6 +30,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -60,64 +61,69 @@ internal fun AppNavigationBar(
     onSelected: (TopLevelPage) -> Unit,
 ) {
     val motion = MaterialTheme.motionScheme
-    val capsule = capsuleMetrics()
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        Surface(
-            // The capsule yields width before the action does when a long label needs room.
-            Modifier.weight(1f, fill = false).testTag("navigation-capsule"),
-            shape = CircleShape,
-            color = ShortNavigationBarDefaults.containerColor,
-            shadowElevation = 1.dp,
-        ) {
-            // Tabs size to their own content; the bar's own layout would force equal slots.
-            Row(
-                modifier = Modifier.selectableGroup()
-                    .padding(horizontal = capsule.horizontalInset, vertical = capsule.verticalInset),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+    // What the platform expands a pointer target to, so the bar reserves exactly that and the tab
+    // items below apply the same value to their own layout.
+    val touchTarget = LocalViewConfiguration.current.minimumTouchTargetSize.height
+    val capsule = capsuleMetrics(touchTarget)
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides touchTarget) {
+        Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+            Surface(
+                // The capsule yields width before the action does when a long label needs room.
+                Modifier.weight(1f, fill = false).testTag("navigation-capsule"),
+                shape = CircleShape,
+                color = ShortNavigationBarDefaults.containerColor,
+                shadowElevation = 1.dp,
             ) {
-                for (page in TopLevelPage.entries) {
-                    val pageSelected = selected == page
-                    val title = stringResource(page.title)
-                    ShortNavigationBarItem(
-                        selected = pageSelected,
-                        onClick = { if (!pageSelected) onSelected(page) },
-                        icon = {
-                            NavigationGlyph(
-                                page.icon, page.selectedIcon,
-                                selected = pageSelected, tint = LocalContentColor.current,
-                                modifier = Modifier.size(GlyphSize).testTag("navigation-glyph-" + page.name),
-                            )
-                        },
-                        label = {
-                            AnimatedVisibility(
-                                visible = pageSelected,
-                                enter = expandHorizontally(animationSpec = motion.fastSpatialSpec()) +
-                                    fadeIn(motion.fastEffectsSpec()),
-                                exit = shrinkHorizontally(animationSpec = motion.fastSpatialSpec()) +
-                                    fadeOut(motion.fastEffectsSpec()),
-                            ) {
-                                Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            }
-                        },
-                        iconPosition = NavigationItemIconPosition.Start,
-                        // The label is only composed when selected; unselected tabs need a name.
-                        modifier = Modifier.testTag("navigation-" + page.name)
-                            .semantics { if (!pageSelected) contentDescription = title },
-                    )
+                // Tabs size to their own content; the bar's own layout would force equal slots.
+                Row(
+                    modifier = Modifier.selectableGroup()
+                        .padding(horizontal = capsule.horizontalInset, vertical = capsule.verticalInset),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    for (page in TopLevelPage.entries) {
+                        val pageSelected = selected == page
+                        val title = stringResource(page.title)
+                        ShortNavigationBarItem(
+                            selected = pageSelected,
+                            onClick = { if (!pageSelected) onSelected(page) },
+                            icon = {
+                                NavigationGlyph(
+                                    page.icon, page.selectedIcon,
+                                    selected = pageSelected, tint = LocalContentColor.current,
+                                    modifier = Modifier.size(GlyphSize).testTag("navigation-glyph-" + page.name),
+                                )
+                            },
+                            label = {
+                                AnimatedVisibility(
+                                    visible = pageSelected,
+                                    enter = expandHorizontally(animationSpec = motion.fastSpatialSpec()) +
+                                        fadeIn(motion.fastEffectsSpec()),
+                                    exit = shrinkHorizontally(animationSpec = motion.fastSpatialSpec()) +
+                                        fadeOut(motion.fastEffectsSpec()),
+                                ) {
+                                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                }
+                            },
+                            iconPosition = NavigationItemIconPosition.Start,
+                            // The label is only composed when selected; unselected tabs need a name.
+                            modifier = Modifier.testTag("navigation-" + page.name)
+                                .semantics { if (!pageSelected) contentDescription = title },
+                        )
+                    }
                 }
             }
-        }
-        AnimatedVisibility(
-            visible = showAction,
-            enter = expandHorizontally(expandFrom = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
-                fadeIn(motion.fastEffectsSpec()),
-            exit = shrinkHorizontally(shrinkTowards = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
-                fadeOut(motion.fastEffectsSpec()),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Spacer(Modifier.width(IndicatorGap))
-                CompositionLocalProvider(LocalNavigationActionSize provides capsule.height) { action() }
+            AnimatedVisibility(
+                visible = showAction,
+                enter = expandHorizontally(expandFrom = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
+                    fadeIn(motion.fastEffectsSpec()),
+                exit = shrinkHorizontally(shrinkTowards = Alignment.End, animationSpec = motion.fastSpatialSpec()) +
+                    fadeOut(motion.fastEffectsSpec()),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(IndicatorGap))
+                    CompositionLocalProvider(LocalNavigationActionSize provides capsule.height) { action() }
+                }
             }
         }
     }
@@ -140,9 +146,9 @@ internal val LocalNavigationActionSize = staticCompositionLocalOf<Dp> {
 internal data class CapsuleMetrics(val height: Dp, val verticalInset: Dp, val horizontalInset: Dp)
 
 /**
- * Every gap between the indicator and the capsule edge is [IndicatorGap], which also keeps their
- * corner radii concentric. A touch target taller than the indicator already covers part of the
- * vertical gap, so the padding is derived rather than equal to the gap.
+ * Every gap between the indicator and the capsule edge is [IndicatorGap], which keeps their corner radii
+ * concentric: both are full pills, so the padding is derived from the touch target rather than fixed.
+ * A target taller than the indicator already covers part of that gap.
  */
 internal fun capsuleGeometry(labelLine: Dp, touchTarget: Dp): CapsuleMetrics {
     val indicator = maxOf(GlyphSize, labelLine) + IndicatorPadding * 2
@@ -152,8 +158,8 @@ internal fun capsuleGeometry(labelLine: Dp, touchTarget: Dp): CapsuleMetrics {
 }
 
 @Composable
-private fun capsuleMetrics(): CapsuleMetrics = capsuleGeometry(
+private fun capsuleMetrics(touchTarget: Dp): CapsuleMetrics = capsuleGeometry(
     // A scaled label can outgrow the glyph, and the indicator follows the taller content.
     labelLine = with(LocalDensity.current) { MaterialTheme.typography.labelMedium.lineHeight.toDp() },
-    touchTarget = LocalMinimumInteractiveComponentSize.current,
+    touchTarget = touchTarget,
 )
