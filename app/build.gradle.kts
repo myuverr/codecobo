@@ -90,7 +90,6 @@ dependencies {
     implementation(libs.window.core)
     implementation(libs.room.runtime)
     implementation(libs.datastore.preferences)
-    implementation(libs.lottie.compose)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
     implementation(libs.hiddenapibypass)

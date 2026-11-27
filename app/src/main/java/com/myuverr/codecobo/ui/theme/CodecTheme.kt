@@ -4,7 +4,6 @@ package com.myuverr.codecobo.ui.theme
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -19,6 +18,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -53,10 +53,11 @@ internal fun CodecTheme(
     val type = remember(tier) { AppTypeScale(tier) }
     val typography = remember(type) { type.materialTypography() }
     val navigationClearance = if (navigationOverlay == null) 0.dp else with(LocalDensity.current) {
-        // Navigation may not be measured on the first frame; use the height it will settle on.
+        // Navigation may not be measured on the first frame; derive the height it will settle on from
+        // the same touch target the bar itself uses.
         (if (navigationOverlay.navigationHeightPixels > 0) navigationOverlay.navigationHeightPixels.toDp()
         else capsuleGeometry(typography.labelMedium.lineHeight.toDp(),
-            LocalMinimumInteractiveComponentSize.current).height) + 12.dp
+            LocalViewConfiguration.current.minimumTouchTargetSize.height).height) + 12.dp
     }
     CompositionLocalProvider(LocalWorkbenchColors provides workbench, LocalAppTypeScale provides type,
         LocalPageSurface provides surface, LocalThemePreference provides preference,

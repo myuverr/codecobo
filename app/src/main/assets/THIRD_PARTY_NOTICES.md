@@ -11,8 +11,6 @@ Third-party libraries and artwork retain their respective licenses.
   https://github.com/LSPosed/AndroidHiddenApiBypass
 - AndroidX Compose, Material 3, Activity, Room, SQLite and their dependencies —
   Android Open Source Project contributors — Apache 2.0.
-- Lottie Android and Lottie Compose 6.7.1 — Airbnb contributors — Apache 2.0.
-  https://github.com/airbnb/lottie-android
 - Kotlin, kotlinx.coroutines, kotlinx.atomicfu and JetBrains annotations —
   JetBrains and respective contributors — Apache 2.0.
 
@@ -29,20 +27,17 @@ https://android.googlesource.com/platform/frameworks/base/+/android-16.0.0_r1/pa
 The headphone illustration and launcher icon are original project artwork,
 licensed under MPL 2.0.
 
-Duotone icons and Regular/Fill navigation icons use Phosphor paths —
-Copyright (c) 2023 Phosphor Icons — MIT.
-Navigation animation data is project-authored using these MIT-licensed contours.
+Duotone icons use Phosphor paths — Copyright (c) 2023 Phosphor Icons — MIT.
 
 https://github.com/phosphor-icons/core
 Reference: 2b75f3ad12b420c9504ef05df8d2564a28f8500e
 
-The save and package-check icons use Lucide paths — ISC.
-Lucide's accompanying Feather MIT attribution and notice are preserved.
-The package-check contour animation is project-authored using this geometry.
+The navigation, save and package-check icons use Icon Monks paths —
+Copyright (c) 2026 Design Monks — MIT. The package-check contour animation is
+project-authored from that geometry.
 
-https://github.com/lucide-icons/lucide
-
-Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
+https://github.com/designmonks-llc/icon-monks
+Reference: @icon-monks/core 0.4.3
 
 ## Full license texts
 
@@ -52,5 +47,4 @@ Complete notices and license terms are included in the following assets:
 - licenses/Apache-2.0.txt
 - licenses/Shizuku-MIT.txt
 - licenses/PHOSPHOR-MIT.txt
-- licenses/Lucide-LICENSE.txt
-- licenses/Lottie-Apache-2.0.txt
+- licenses/ICON-MONKS-MIT.txt

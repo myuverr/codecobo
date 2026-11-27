@@ -2,83 +2,109 @@
 
 package com.myuverr.codecobo.ui.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LoadingIndicatorDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.*
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.unit.dp
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.controller.SubmissionFeedback
+import kotlin.coroutines.coroutineContext
 
-/** The loading fades out, the package draws, its check mark follows, then the tint settles. */
-private const val LoadingFadeMillis = 160
-private const val PackageDrawMillis = 400
-private const val CheckDrawMillis = 220
-private const val TintMillis = 300
+/** Which of the button's three faces is showing: the ask, the work, or the receipt. */
+private enum class SubmitStage { SUBMIT, SAVING, SAVED }
 
-private const val CheckStartMillis = LoadingFadeMillis + PackageDrawMillis
-private const val TintStartMillis = CheckStartMillis + CheckDrawMillis
-private const val RevealMillis = TintStartMillis + TintMillis
+/**
+ * The faces' box. Icon Monks' floppy inks more of its artboard than the tab glyphs do and sits white on
+ * a full primary circle, so it is drawn at 18dp to read the same size as their 24dp glyphs.
+ */
+private val FaceSize = 18.dp
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+/**
+ * The loading indicator keeps its own margins inside its box, so this box is a little wider than the
+ * faces and the spinning shape lands just under them.
+ */
+private val SavingSize = 22.dp
+
 @Composable
 internal fun SubmitFeedback(state: HomeState) {
-    val receipt = state.currentSubmission
-    // Mount at the current endpoint without replaying a completed save.
-    val initialTerminal = remember {
-        receipt?.takeIf { it.status() != SubmissionFeedback.Status.RUNNING }
+    val stage = when {
+        state.submitting -> SubmitStage.SAVING
+        state.showCompletedPackage -> SubmitStage.SAVED
+        else -> SubmitStage.SUBMIT
     }
-    var lastStarted by remember { mutableStateOf(initialTerminal) }
-    var active by remember { mutableStateOf<SubmissionFeedback?>(null) }
-    val progress = remember { Animatable(0f) }
-    val motion = rememberCoroutineScope().coroutineContext[MotionDurationScale]
-    val animate = (motion?.scaleFactor ?: 1f) > 0f
-    val success = state.completedTargetMatches
-    val reveal = success && animate && (receipt != lastStarted || active == receipt)
-    // Set the first frame before effects run to avoid an icon flash.
-    val elapsed = if (active == receipt) progress.value * RevealMillis else 0f
-    LaunchedEffect(receipt, success, animate) {
-        active = null
-        if (success && receipt != lastStarted) {
-            lastStarted = receipt
-            if (animate) {
-                progress.snapTo(0f)
-                active = receipt
-                progress.animateTo(1f, tween(RevealMillis, easing = LinearEasing))
-                active = null
-            }
+    // A receipt is inked once, and only while its face is on screen: editing the draft away and back
+    // cancels the reveal midway, so that receipt shows up finished rather than half drawn.
+    val receipt = state.currentSubmission?.takeIf { it.status() != SubmissionFeedback.Status.RUNNING }
+    val shown = state.showCompletedPackage
+    val walk = remember { Animatable(1f) }
+    var inked by remember { mutableStateOf(receipt) }
+    LaunchedEffect(receipt, shown) {
+        if (receipt == null || !shown) return@LaunchedEffect
+        if (receipt == inked) {
+            walk.snapTo(1f)
+            return@LaunchedEffect
         }
+        inked = receipt
+        walk.snapTo(0f)
+        walk.animateTo(1f, tween(RevealMillis.toInt(), easing = LinearEasing))
     }
-    Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
-        if (state.submitting || (reveal && elapsed < LoadingFadeMillis)) {
-            val fade = if (state.submitting) 0f else (elapsed / LoadingFadeMillis).coerceIn(0f, 1f)
-            val loadingModifier = Modifier.size(32.dp).testTag("submit-loading")
-                .graphicsLayer { alpha = 1f - fade; scaleX = 1f - fade * .15f; scaleY = scaleX }
-                .clearAndSetSemantics { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
-            if (animate) LoadingIndicator(modifier = loadingModifier, color = MaterialTheme.colorScheme.primary)
-            else LoadingIndicator(progress = { 0f }, modifier = loadingModifier,
-                color = MaterialTheme.colorScheme.primary, polygons = LoadingIndicatorDefaults.IndeterminateIndicatorPolygons)
-        } else if (reveal) {
-            SavedPackageGlyph(
-                bodyProgress = ((elapsed - LoadingFadeMillis) / PackageDrawMillis).coerceIn(0f, 1f),
-                checkProgress = ((elapsed - CheckStartMillis) / CheckDrawMillis).coerceIn(0f, 1f),
-                tint = lerp(MaterialTheme.colorScheme.primary, LocalContentColor.current,
-                    ((elapsed - TintStartMillis) / TintMillis).coerceIn(0f, 1f)),
-                modifier = Modifier.size(28.dp).testTag("submit-package"),
+    val effects = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
+    AnimatedContent(
+        targetState = stage,
+        modifier = Modifier.size(SavingSize),
+        transitionSpec = { fadeIn(effects) togetherWith fadeOut(effects) },
+        contentAlignment = Alignment.Center,
+        label = "submit-stage",
+    ) { face ->
+        when (face) {
+            SubmitStage.SUBMIT -> Icon(
+                painterResource(R.drawable.ic_action_save), null,
+                Modifier.size(FaceSize).testTag("submit-save"),
             )
-        } else {
-            Icon(painterResource(if (state.showCompletedPackage) R.drawable.ic_action_package else R.drawable.ic_action_save),
-                null, Modifier.size(28.dp).testTag(if (state.showCompletedPackage) "submit-package" else "submit-save"))
+            SubmitStage.SAVING -> SavingIndicator()
+            SubmitStage.SAVED -> SavedPackage(walk.asState(), Modifier.size(FaceSize).testTag("submit-package"))
         }
     }
+}
+
+/** An indeterminate spinner never settles, so a held frame stands in its place when animations are off. */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun SavingIndicator() {
+    val spinning = (rememberCoroutineScope().coroutineContext[MotionDurationScale]?.scaleFactor ?: 1f) > 0f
+    val color = MaterialTheme.colorScheme.primary
+    val busy = Modifier.fillMaxSize()
+        .clearAndSetSemantics { progressBarRangeInfo = ProgressBarRangeInfo.Indeterminate }
+        .testTag("submit-loading")
+    if (spinning) LoadingIndicator(modifier = busy, color = color)
+    else LoadingIndicator(
+        progress = { 0f }, modifier = busy, color = color,
+        polygons = LoadingIndicatorDefaults.IndeterminateIndicatorPolygons,
+    )
 }

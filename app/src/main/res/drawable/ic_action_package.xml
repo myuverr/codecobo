@@ -1,9 +1,5 @@
-<!-- SPDX-License-Identifier: ISC AND MIT -->
-<!-- Lucide package-check; original paths, 2-unit round stroke. See assets/licenses/Lucide-LICENSE.txt. -->
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
-    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M12 22V12" />
-    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="m16 17 2 2 4-4" />
-    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M21 11.127V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.729l7 4a2 2 0 0 0 2 .001l1.32-.753" />
-    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M3.29 7 12 12l8.71-5" />
-    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="2" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="m7.5 4.27 8.997 5.148" />
+<!-- SPDX-License-Identifier: MIT -->
+<!-- Icon Monks package-check (bold), box; MIT. See assets/licenses/ICON-MONKS-MIT.txt. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="24dp" android:height="24dp" android:viewportWidth="256" android:viewportHeight="256">
+    <path android:fillColor="#FF000000" android:pathData="M128 20A12 12 0 0 0 122.25 21.47L34.46 69.35A12.02 12.02 0 0 0 28 80.2V176A12 12 0 0 0 34.25 186.53L122.08 234.44A12.03 12.03 0 0 0 133.92 234.44L147.73 226.91C137.99 216.83 132 203.12 132 188C132 177.44 134.92 167.57 140 159.14V135.12L204 100.21V134.32C213.22 137.06 221.44 142.12 228 148.81V80.2A12.01 12.01 0 0 0 221.54 69.35L177.94 45.57A11.78 11.78 0 0 0 177.54 45.35L133.75 21.47A12 12 0 0 0 128 20ZM65.06 80L128 45.67L146.94 56L84 90.33L65.06 80ZM128 114.33L109.06 104L172 69.67L190.94 80L128 114.33ZM84 156A12 12 0 0 0 96 144V124.21L116 135.12V203.79L52 168.88V100.21L72 111.12V144A12 12 0 0 0 84 156Z" />
 </vector>
