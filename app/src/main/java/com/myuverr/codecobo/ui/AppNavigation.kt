@@ -154,7 +154,7 @@ internal fun AppNavigation(
                                     selected = selectedTab,
                                     showAction = showAction,
                                     action = {
-                                        // A different device starts with a fresh save animation.
+                                        // A device switch must not re-ink the incoming device's receipt.
                                         key(homeState.selectedAddress, homeState.editor.deviceAddress) {
                                             SubmitTarget(homeState, { home.submission()?.let(onSubmit) }, showAction)
                                         }

@@ -17,8 +17,6 @@ internal val ThirdPartyLicenses = listOf(
     LicenseDocument("Shizuku-MIT.txt", "Shizuku API · MIT"),
     LicenseDocument("PHOSPHOR-MIT.txt", "Phosphor · MIT"),
     LicenseDocument("ICON-MONKS-MIT.txt", "Icon Monks · MIT"),
-    LicenseDocument("Lucide-LICENSE.txt", "Lucide · ISC / MIT"),
-    LicenseDocument("Lottie-Apache-2.0.txt", "Lottie · Apache 2.0"),
 )
 
 internal const val ThirdPartyNoticesAsset = "THIRD_PARTY_NOTICES.md"

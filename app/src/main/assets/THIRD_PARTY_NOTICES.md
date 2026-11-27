@@ -34,18 +34,12 @@ Duotone icons use Phosphor paths — Copyright (c) 2023 Phosphor Icons — MIT.
 https://github.com/phosphor-icons/core
 Reference: 2b75f3ad12b420c9504ef05df8d2564a28f8500e
 
-The navigation icons use Icon Monks paths — Copyright (c) 2026 Design Monks — MIT.
+The navigation, save and package-check icons use Icon Monks paths —
+Copyright (c) 2026 Design Monks — MIT. The motion that inks the package-check
+glyph is project-authored from that geometry.
 
 https://github.com/designmonks-llc/icon-monks
 Reference: @icon-monks/core 0.4.3
-
-The save and package-check icons use Lucide paths — ISC.
-Lucide's accompanying Feather MIT attribution and notice are preserved.
-The package-check contour animation is project-authored using this geometry.
-
-https://github.com/lucide-icons/lucide
-
-Copyright (c) for portions of Lucide are held by Cole Bemis 2013-2022 as part of Feather (MIT). All other copyright (c) for Lucide are held by Lucide Contributors 2022.
 
 ## Full license texts
 
@@ -55,5 +49,5 @@ Complete notices and license terms are included in the following assets:
 - licenses/Apache-2.0.txt
 - licenses/Shizuku-MIT.txt
 - licenses/PHOSPHOR-MIT.txt
-- licenses/Lucide-LICENSE.txt
+- licenses/ICON-MONKS-MIT.txt
 - licenses/Lottie-Apache-2.0.txt

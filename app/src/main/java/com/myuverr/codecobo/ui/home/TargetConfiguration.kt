@@ -2,11 +2,14 @@
 
 package com.myuverr.codecobo.ui.home
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -139,6 +142,7 @@ private fun ChoiceLegend() {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, shown: Boolean, modifier: Modifier = Modifier) {
+    val enabled = state.canSubmit && shown
     val savedTargetMatches = state.savedTargetMatches
     val savedDescription = stringResource(R.string.home_saved_unchanged)
     val actionDescription = stringResource(if (state.capabilities.isEmpty()) R.string.home_prepare else R.string.home_submit)
@@ -147,15 +151,36 @@ internal fun SubmitTarget(state: HomeState, onSubmit: () -> Unit, shown: Boolean
         R.string.home_completed_saved else R.string.home_completed_applied)
     FilledIconButton(
         onClick = onSubmit,
-        enabled = state.canSubmit && shown,
+        enabled = enabled,
         modifier = modifier.size(LocalNavigationActionSize.current).testTag("apply").semantics {
             contentDescription = actionDescription
             if (state.submitting) stateDescription = submittingDescription
             else if (savedTargetMatches) stateDescription = savedDescription
             else if (state.completedTargetMatches) stateDescription = completedDescription
         },
+        colors = submitButtonColors(enabled),
         shape = MaterialShapes.Cookie9Sided.toShape(),
     ) {
         SubmitFeedback(state)
     }
+}
+
+/**
+ * Saving usually leaves nothing to submit, so the button disables while the receipt is still drawing.
+ * Resolving both palettes into one animated role keeps that handover from flashing.
+ */
+@Composable
+private fun submitButtonColors(enabled: Boolean): IconButtonColors {
+    val base = IconButtonDefaults.filledIconButtonColors()
+    val live by animateFloatAsState(
+        if (enabled) 1f else 0f,
+        MaterialTheme.motionScheme.fastEffectsSpec(),
+        label = "submit-enabled",
+    )
+    val container = lerp(base.disabledContainerColor, base.containerColor, live)
+    val content = lerp(base.disabledContentColor, base.contentColor, live)
+    return base.copy(
+        containerColor = container, contentColor = content,
+        disabledContainerColor = container, disabledContentColor = content,
+    )
 }
