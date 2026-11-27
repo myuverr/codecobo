@@ -6,19 +6,17 @@ import android.os.LocaleList
 import androidx.navigation3.runtime.NavKey
 import com.myuverr.codecobo.controller.ScreenState
 import com.myuverr.codecobo.ui.StatusNotificationControl
-import com.myuverr.codecobo.ui.management.ManagementData
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 internal enum class SettingsRoute : NavKey {
-    ROOT, ACCESS, RECORDS, DIAGNOSTICS, ABOUT, LICENSES, PROJECT_LICENSE, NOTICES, PRIVACY,
+    ROOT, ACCESS, RECORDS, DIAGNOSTICS, ABOUT, LICENSES, NOTICES, PRIVACY,
 }
 
 internal data class SettingsState(
     val connection: ScreenState? = null,
-    val data: ManagementData = ManagementData(loading = true),
-    val notification: StatusNotificationControl.State = StatusNotificationControl.State(false, false, ""),
+    val notification: StatusNotificationControl.State = StatusNotificationControl.State(false),
     val applicationLocales: LocaleList,
     val systemLocales: LocaleList,
 ) {

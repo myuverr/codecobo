@@ -28,13 +28,14 @@ internal class LibraryPanel(private val context: Context, private val actions: A
         fun remove(address: String, revision: Long)
     }
 
-    private var state by mutableStateOf(LibraryState())
+    private var connection by mutableStateOf<ScreenState?>(null)
+    private var latestPaused by mutableStateOf<Boolean?>(null)
     private var awaitingResult = false
     private var localError by mutableStateOf<String?>(null)
 
-    fun render(connection: ScreenState, restorePaused: Boolean) {
-        if (awaitingResult && !connection.busy()) {
-            localError = when (connection.operationFailure()) {
+    fun render(state: ScreenState, restorePaused: Boolean) {
+        if (awaitingResult && !state.busy()) {
+            localError = when (state.operationFailure()) {
                 ScreenState.OperationFailure.PROFILE_CHANGED -> context.getString(R.string.library_changed)
                 ScreenState.OperationFailure.PROFILE -> context.getString(R.string.notice_profile_operation_failed)
                 ScreenState.OperationFailure.RESTORE -> context.getString(R.string.notice_profile_restore_failed)
@@ -42,13 +43,8 @@ internal class LibraryPanel(private val context: Context, private val actions: A
             }
             awaitingResult = false
         }
-        state = state.copy(connection = connection, data = state.data.copy(restorePaused = restorePaused))
-    }
-
-    fun renderData(data: ManagementData) {
-        // Audio rendering supplies the current preference; metadata may have started before that write.
-        val paused = if (state.connection == null) data.restorePaused else state.data.restorePaused
-        state = state.copy(data = data.copy(restorePaused = paused))
+        connection = state
+        latestPaused = restorePaused
     }
 
     fun showError(message: String) { localError = message }
@@ -59,7 +55,8 @@ internal class LibraryPanel(private val context: Context, private val actions: A
     }
 
     @Composable
-    fun Root(onOpen: (DeviceKey) -> Unit) {
+    fun Root(metadata: ManagementData, onOpen: (DeviceKey) -> Unit) {
+        val state = stateFor(metadata)
         WithFeedback {
             LibraryScreen(
                 state,
@@ -74,7 +71,8 @@ internal class LibraryPanel(private val context: Context, private val actions: A
     }
 
     @Composable
-    fun Details(device: DeviceKey, onBack: () -> Unit, onEdit: (String) -> Unit) {
+    fun Details(device: DeviceKey, metadata: ManagementData, onBack: () -> Unit, onEdit: (String) -> Unit) {
+        val state = stateFor(metadata)
         val detail = state.detail(device)
         var deleting by remember { mutableStateOf<DeviceProfile?>(null) }
         WithFeedback {
@@ -97,12 +95,14 @@ internal class LibraryPanel(private val context: Context, private val actions: A
             }
         }
         deleting?.let { requested ->
-            DeleteSheet(requested, onDismiss = { deleting = null }) {
+            DeleteSheet(state, requested, onDismiss = { deleting = null }) {
                 deleting = null
                 command { actions.remove(requested.address(), requested.revision()) }
             }
         }
     }
+
+    private fun stateFor(metadata: ManagementData) = LibraryState(connection).withMetadata(metadata, latestPaused)
 
     @Composable
     private fun WithFeedback(content: @Composable () -> Unit) {
@@ -117,7 +117,12 @@ internal class LibraryPanel(private val context: Context, private val actions: A
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun DeleteSheet(requested: DeviceProfile, onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    private fun DeleteSheet(
+        state: LibraryState,
+        requested: DeviceProfile,
+        onDismiss: () -> Unit,
+        onConfirm: () -> Unit,
+    ) {
         val current = state.data.profiles.find { it.address() == requested.address() }
         val unchanged = current?.revision() == requested.revision()
         val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
@@ -147,7 +152,7 @@ internal class LibraryPanel(private val context: Context, private val actions: A
     }
 
     private inline fun command(action: () -> Unit) {
-        if (state.connection?.busy() == true) return
+        if (connection?.busy() == true) return
         awaitingResult = true
         localError = null
         action()

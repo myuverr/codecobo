@@ -160,7 +160,6 @@
     <string name="notice_system_settings_unavailable">Configurações do Android indisponíveis</string>
     <string name="notice_system_settings_manual">Abra a página correspondente nas configurações do Android.</string>
     <string name="notice_close">Fechar</string>
-    <string name="notice_status_nearby_required">Permita o acesso a dispositivos por perto antes de ativar a notificação de status.</string>
     <string name="notice_profile_operation_failed">Não foi possível atualizar as configurações. Tente novamente.</string>
     <string name="notice_profile_restore_failed">Não foi possível alterar a restauração automática. Conecte os fones e tente novamente.</string>
     <string name="notice_profile_read_failed">Não foi possível ler a configuração. Aguardando uma atualização de status.</string>
@@ -168,8 +167,6 @@
     <string name="notice_version_unknown">Versão desconhecida</string>
     <string name="notice_association_read_failed">Não foi possível ler as associações. Atualize para tentar novamente.</string>
     <string name="notice_read_failed">Não foi possível ler os registros. Atualize para tentar novamente.</string>
-    <string name="notice_status_nearby_hint">"\nPermita primeiro o acesso a dispositivos por perto"</string>
-    <string name="notice_status_notification_hint">"\nVerifique este app nas configurações de notificações do Android"</string>
     <string name="notice_pending_codec">Codec %1$s</string>
     <string name="notice_pending_rate">Taxa de amostragem %1$s</string>
     <string name="notice_pending_bits">Profundidade de bits %1$s</string>
@@ -201,22 +198,16 @@
     <string name="notification_status_read_error">Saída do dispositivo indisponível: %1$s</string>
     <!-- settings_strings.xml -->
     <string name="settings_access">Permissões e acesso</string>
-    <string name="settings_access_hint">Dispositivos por perto, otimização da bateria e método de acesso</string>
     <string name="settings_background_section">Segundo plano e notificações</string>
     <string name="settings_status">Notificação permanente de status</string>
-    <string name="settings_status_pending">Permita as notificações</string>
-    <string name="settings_status_off">Desativado</string>
-    <string name="settings_status_offline">Ativada, visível mesmo sem fones conectados</string>
-    <string name="settings_status_online">Mostrar as configurações atuais de áudio na notificação permanente</string>
     <string name="settings_diagnostics">Registro de atividades</string>
-    <string name="settings_diagnostics_hint">Ver os eventos em segundo plano registrados por este app</string>
     <string name="settings_appearance_section">Aparência</string>
     <string name="settings_theme">Tema</string>
     <string name="settings_language">Idioma</string>
     <string name="settings_language_system">Padrão do sistema</string>
     <string name="settings_language_system_hint">Idioma do app: %1$s</string>
-    <string name="settings_row_detail_with_value">%1$s\n%2$s</string>
     <string name="settings_theme_system">Padrão do sistema</string>
+    <string name="settings_theme_save_failed">Não foi possível salvar o tema</string>
     <string name="settings_theme_light">Claro</string>
     <string name="settings_theme_dark">Escuro</string>
     <string name="settings_about_section">Ajuda e informações</string>
@@ -226,10 +217,10 @@
     <string name="settings_not_read">Ainda não lido</string>
     <string name="settings_allowed">Permitido</string>
     <string name="settings_not_allowed">Não permitido</string>
-    <string name="settings_mode">Método de acesso</string>
-    <string name="settings_mode_hint">Escolha como acessar os dispositivos Bluetooth</string>
+    <string name="settings_mode">Acesso Bluetooth</string>
     <string name="settings_records">Dispositivos associados</string>
-    <string name="settings_records_hint">Dispositivos associados a este app</string>
+    <string name="settings_records_unsaved">Não salvas</string>
+    <string name="settings_records_saved">Salvas</string>
     <string name="settings_battery">Otimização da bateria</string>
     <string name="settings_battery_hint">Pedir ao Android para ignorar a otimização da bateria</string>
     <string name="settings_battery_on">Isento</string>
@@ -241,10 +232,9 @@
     <string name="settings_tool">Configure o codec de áudio Bluetooth e salve ajustes por dispositivo para restauração automática</string>
     <string name="settings_version">Versão %1$s</string>
     <string name="settings_licenses">Licenças de código aberto</string>
-    <string name="settings_mode_plain_hint">Usar o acesso a dispositivos do Android</string>
+    <string name="settings_mode_plain_hint">Confirme a associação do dispositivo na caixa de diálogo do sistema</string>
     <string name="settings_mode_shizuku_hint">Autorizar a associação do dispositivo por um serviço compatível com Shizuku API</string>
     <string name="settings_no_associations">Nenhum dispositivo associado</string>
-    <string name="settings_record_saved">Configuração salva</string>
     <string name="language_name">Português (Brasil)</string>
     <!-- strings.xml -->
     <string name="access_mode_system">Acesso pelo sistema</string>
@@ -253,4 +243,5 @@
     <string name="profile_delete_explanation">Exclui as configurações salvas e desativa a restauração automática deste dispositivo. Não pode ser desfeito!</string>
     <string name="restore_diagnostics_copy">Copiar registro</string>
     <string name="restore_diagnostics_clear">Limpar registro</string>
+    <string name="notice_status_nearby_required">Permita o acesso a dispositivos por perto antes de ativar a notificação de status.</string>
 </resources>

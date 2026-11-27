@@ -7,6 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -14,7 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.text.font.FontWeight
-import com.myuverr.codecobo.ui.theme.adaptiveSp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.myuverr.codecobo.R
 import com.myuverr.codecobo.ui.theme.LocalAppTypeScale
@@ -31,7 +33,7 @@ internal fun PageLayout(
     val type = LocalAppTypeScale.current
     val clearance = LocalFloatingNavigationClearance.current
     Surface(Modifier.fillMaxSize(), color = LocalPageSurface.current.value) {
-        Box(Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.TopCenter) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
             Column(Modifier.widthIn(max = type.pageMaxWidth).fillMaxSize()) {
                 TopAppBar(
                     title = { PageTitle(title) },
@@ -60,32 +62,20 @@ internal fun PageLayout(
 
 @Composable
 internal fun PageTitle(title: String) {
-    Text(title, Modifier.semantics { heading() }, fontSize = 25.adaptiveSp,
-        lineHeight = 32.adaptiveSp, fontWeight = FontWeight.SemiBold)
+    Text(title, Modifier.semantics { heading() }, style = MaterialTheme.typography.headlineSmall)
 }
 
 @Composable
 internal fun SectionLabel(text: String) {
     Text(text, Modifier.padding(top = 16.dp, bottom = 8.dp).semantics { heading() },
-        fontSize = 11.adaptiveSp, lineHeight = 17.adaptiveSp, fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
+        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
 @Composable
 internal fun PageNote(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier, fontSize = 12.adaptiveSp, lineHeight = 21.adaptiveSp,
+    Text(text, modifier, style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
-
-@Composable
-internal fun settingRowTitleStyle() = MaterialTheme.typography.bodyLarge.copy(
-    fontSize = 15.adaptiveSp, lineHeight = 20.adaptiveSp, fontWeight = FontWeight.SemiBold,
-)
-
-@Composable
-internal fun settingRowValueStyle() = MaterialTheme.typography.labelSmall.copy(
-    fontSize = 12.adaptiveSp, lineHeight = 18.adaptiveSp,
-)
 
 @Composable
 internal fun settingRowColors(): ListItemColors = ListItemDefaults.colors(
@@ -93,43 +83,62 @@ internal fun settingRowColors(): ListItemColors = ListItemDefaults.colors(
     leadingContentColor = MaterialTheme.colorScheme.primary,
 )
 
+/** Where a row sits inside a segmented group; Material 3 derives the group's corners from it. */
+@Immutable
+internal data class SegmentedRow(val index: Int, val count: Int)
+
 @Composable
 internal fun SettingRow(
     title: String,
+    modifier: Modifier = Modifier,
     description: String = "",
     icon: Int? = null,
     value: String = "",
     enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
-    shapes: ListItemShapes = ListItemDefaults.shapes(),
-    colors: ListItemColors = settingRowColors(),
+    group: SegmentedRow? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    val leading: (@Composable () -> Unit)? = icon?.let { resource ->
+    val titleStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
+    val supportingStyle = MaterialTheme.typography.bodySmall
+    val valueStyle = MaterialTheme.typography.labelMedium
+    val leadingContent: (@Composable () -> Unit)? = icon?.let { resource ->
         { Icon(painterResource(resource), null) }
     }
-    val supporting: (@Composable () -> Unit)? = description.takeIf(String::isNotBlank)?.let { text ->
-        { Text(text, fontSize = 11.adaptiveSp, lineHeight = 18.adaptiveSp) }
+    val supportingContent: (@Composable () -> Unit)? = description.takeIf(String::isNotBlank)?.let { text ->
+        { Text(text, style = supportingStyle) }
     }
-    val end: (@Composable () -> Unit)? = if (value.isNotBlank() || trailing != null || onClick != null) {
+    val trailingContent: (@Composable () -> Unit)? = if (value.isNotBlank() || trailing != null || onClick != null) {
         {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                if (value.isNotBlank()) Text(value, style = settingRowValueStyle())
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (value.isNotBlank()) Text(value, style = valueStyle, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (trailing != null) trailing()
                 else if (onClick != null) Icon(painterResource(R.drawable.ic_home_expand), null,
                     Modifier.rotate(if (LocalLayoutDirection.current == LayoutDirection.Rtl) 90f else -90f))
             }
         }
     } else null
-    if (onClick == null) {
-        ListItem(modifier = Modifier.fillMaxWidth(), enabled = enabled, shapes = shapes, colors = colors,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, leadingContent = leading,
-            supportingContent = supporting, trailingContent = end) { Text(title, style = settingRowTitleStyle()) }
+    val shapes = group?.let { ListItemDefaults.segmentedShapes(it.index, it.count) } ?: ListItemDefaults.shapes()
+    // The segmented defaults paint the page colour, so every row keeps its own surface tint.
+    val colors = settingRowColors()
+    val rowModifier = if (onClick == null) modifier.fillMaxWidth()
+        else modifier.fillMaxWidth().semantics { role = Role.Button }
+    val label: @Composable () -> Unit = { Text(title, style = titleStyle) }
+    if (group == null) {
+        if (onClick == null) ListItem(rowModifier, enabled = enabled, leadingContent = leadingContent,
+            trailingContent = trailingContent, supportingContent = supportingContent,
+            verticalAlignment = Alignment.CenterVertically, shapes = shapes, colors = colors, content = label)
+        else ListItem(onClick, rowModifier, enabled = enabled, leadingContent = leadingContent,
+            trailingContent = trailingContent, supportingContent = supportingContent,
+            verticalAlignment = Alignment.CenterVertically, shapes = shapes, colors = colors, content = label)
     } else {
-        ListItem(onClick = onClick, modifier = Modifier.fillMaxWidth().semantics { role = Role.Button },
-            enabled = enabled, shapes = shapes, colors = colors,
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically, leadingContent = leading,
-            supportingContent = supporting, trailingContent = end) { Text(title, style = settingRowTitleStyle()) }
+        if (onClick == null) SegmentedListItem(shapes, rowModifier, enabled = enabled,
+            leadingContent = leadingContent, trailingContent = trailingContent,
+            supportingContent = supportingContent, verticalAlignment = Alignment.CenterVertically,
+            colors = colors, content = label)
+        else SegmentedListItem(onClick, shapes, rowModifier, enabled = enabled,
+            leadingContent = leadingContent, trailingContent = trailingContent,
+            supportingContent = supportingContent, verticalAlignment = Alignment.CenterVertically,
+            colors = colors, content = label)
     }
 }

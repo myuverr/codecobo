@@ -9,10 +9,10 @@
     <string name="about_project_license">项目许可证</string>
     <string name="about_third_party">第三方许可与致谢</string>
     <string name="about_notices">第三方声明</string>
-    <string name="about_privacy">隐私政策</string>
+    <string name="about_privacy">隐私说明</string>
     <string name="about_link_error_title">无法打开链接</string>
     <string name="about_link_error_message">请在浏览器中打开：\n%1$s</string>
-    <string name="about_privacy_body">%1$s 由 %2$s 开发。\n\n本地数据\n蓝牙设备名称和地址、保存的音频配置、应用偏好设置与连接会话的恢复进度保存在设备上。诊断记录包含设备与应用运行信息、连接事件和操作结果。\n\n数据用途\n这些信息用于读取音频参数、保存和恢复配置、显示状态通知以及排查问题。使用应用无需创建账号。\n\n数据分享\n应用不含广告或统计服务，也不自动上传这些记录。复制日志会将文本放入系统剪贴板，剪贴板历史和同步由系统设置管理，分享位置由你选择。项目链接在浏览器中打开，对 GitHub 的访问适用其隐私政策。\n\n权限\n附近设备权限用于读取蓝牙状态，通知和电池设置用于支持后台状态显示与配置恢复。Shizuku API 提供可选的设备关联授权方式。\n\n数据保留与删除\n保存的配置保留至你删除，诊断日志会滚动更新。你可以在配置库删除配置，在后台记录中清除日志。清除应用数据或卸载会移除应用的本地记录。蓝牙配对和系统管理的设备关联可在 Android 设置中管理。\n\n联系我们\n隐私相关问题：%3$s</string>
+    <string name="about_privacy_body">Codecobo 不收集、不上传任何数据。应用未声明网络权限，不含广告、分析或崩溃上报组件，使用也不需要账号。\n\n保存在本机的数据\n• 已关联设备的名称与地址\n• 保存的音频配置与自动恢复偏好\n• 应用偏好，例如主题、语言、访问方式与状态通知\n• 诊断记录，滚动保留，可在「后台记录」中清除\n这些数据仅用于读取与恢复音频参数、显示状态通知和排查问题，不会发送到应用之外。\n\n权限\n• 附近设备：读取已连接设备的音频参数\n• 通知：显示常驻状态通知\n• 电池优化与后台运行：设备重新连接后恢复配置\n权限仅在你主动使用相应功能时申请，可随时在 Android 设置中撤销。\n\n外部链接\n应用内的项目链接由系统浏览器打开，相应站点适用其自身的隐私政策。\n\n联系我们\n问题与隐私相关咨询：%1$s</string>
     <string name="about_document_loading">正在加载内容…</string>
     <string name="about_document_error">无法加载内容</string>
 </resources>

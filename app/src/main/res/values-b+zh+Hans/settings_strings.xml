@@ -1,22 +1,16 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
 <resources>
     <string name="settings_access">权限与访问</string>
-    <string name="settings_access_hint">附近设备权限、电池优化白名单和访问方式</string>
     <string name="settings_background_section">后台与通知</string>
     <string name="settings_status">常驻状态通知</string>
-    <string name="settings_status_pending">请允许通知权限</string>
-    <string name="settings_status_off">未开启</string>
-    <string name="settings_status_offline">已开启，未连接耳机时也保留通知</string>
-    <string name="settings_status_online">在常驻通知中显示当前音频参数</string>
     <string name="settings_diagnostics">后台记录</string>
-    <string name="settings_diagnostics_hint">查看本应用实际记录的后台事件</string>
     <string name="settings_appearance_section">外观</string>
     <string name="settings_theme">主题</string>
     <string name="settings_language">语言</string>
     <string name="settings_language_system">跟随系统</string>
     <string name="settings_language_system_hint">当前语言：%1$s</string>
-    <string name="settings_row_detail_with_value">%1$s\n%2$s</string>
     <string name="settings_theme_system">跟随系统</string>
+    <string name="settings_theme_save_failed">无法保存主题设置</string>
     <string name="settings_theme_light">浅色</string>
     <string name="settings_theme_dark">深色</string>
     <string name="settings_about_section">帮助与关于</string>
@@ -26,10 +20,10 @@
     <string name="settings_not_read">未读取</string>
     <string name="settings_allowed">已允许</string>
     <string name="settings_not_allowed">未允许</string>
-    <string name="settings_mode">访问方式</string>
-    <string name="settings_mode_hint">选择蓝牙访问方式</string>
+    <string name="settings_mode">蓝牙访问方式</string>
     <string name="settings_records">关联过的设备</string>
-    <string name="settings_records_hint">查看本应用关联的设备</string>
+    <string name="settings_records_unsaved">未保存</string>
+    <string name="settings_records_saved">已保存</string>
     <string name="settings_battery">电池优化白名单</string>
     <string name="settings_battery_hint">由系统确认是否忽略电池优化</string>
     <string name="settings_battery_on">已加入白名单</string>
@@ -41,9 +35,8 @@
     <string name="settings_tool">调整蓝牙音频编解码器参数，按设备保存并自动恢复配置</string>
     <string name="settings_version">版本 %1$s</string>
     <string name="settings_licenses">开源许可</string>
-    <string name="settings_mode_plain_hint">通过系统访问蓝牙</string>
+    <string name="settings_mode_plain_hint">通过系统对话框确认设备关联</string>
     <string name="settings_mode_shizuku_hint">通过兼容 Shizuku API 的服务辅助关联授权</string>
     <string name="settings_no_associations">暂无关联记录</string>
-    <string name="settings_record_saved">已保存配置</string>
     <string name="language_name">简体中文</string>
 </resources>

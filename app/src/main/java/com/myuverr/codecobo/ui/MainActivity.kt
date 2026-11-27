@@ -17,6 +17,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.edit
 import androidx.core.net.toUri
@@ -32,6 +33,7 @@ import com.myuverr.codecobo.platform.RestoreService
 import com.myuverr.codecobo.platform.RestoreTrace
 import com.myuverr.codecobo.ui.home.HomeSubmission
 import com.myuverr.codecobo.ui.home.HomeViewModel
+import com.myuverr.codecobo.ui.management.ManagementSnapshot
 import com.myuverr.codecobo.ui.management.ManagementLoader
 import com.myuverr.codecobo.ui.management.ManagementReader
 import com.myuverr.codecobo.ui.theme.prepareWindowTheme
@@ -44,7 +46,17 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
     private lateinit var settings: SettingsPanel
     private lateinit var controller: CodecController
     private lateinit var management: ManagementLoader
+    private val managementSnapshot = ManagementSnapshot()
     private lateinit var notificationControl: StatusNotificationControl
+    private val nearbyPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        controller.refresh()
+        RestoreService.requestCheck(this, null, "nearby_permission_returned")
+        management.refresh()
+    }
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+        notificationControl.permissionResult()
+        controller.refresh()
+    }
     private lateinit var profileFacts: LiveData<ProfileFacts>
     private var associationCode = 0
     private var closed = false
@@ -60,10 +72,15 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
         profileFacts = ProfileStore(this).facts()
         controller = CodecController(this, savedInstanceState?.getString("selectedDevice"), ::render)
         management = ManagementLoader(ManagementReader(this)) { data ->
-            library.renderData(data)
-            settings.renderData(data)
+            managementSnapshot.publish(data)
         }
-        notificationControl = StatusNotificationControl(this, savedInstanceState) { state ->
+        notificationControl = StatusNotificationControl(
+            this, savedInstanceState,
+            requestPermission = { notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS) },
+            onNearbyMissing = {
+                Toast.makeText(this, R.string.notice_status_nearby_required, Toast.LENGTH_LONG).show()
+            },
+        ) { state ->
             settings.renderNotification(state)
             management.refresh()
         }
@@ -75,7 +92,7 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
         }
         setContent {
             AppNavigation(
-                home, library, settings,
+                home, library, settings, managementSnapshot,
                 refreshManagement = ::refreshManagement,
                 onSelectDevice = controller::select,
                 onSubmit = ::submit,
@@ -137,6 +154,10 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
         management.refresh()
     }
 
+    override fun themeSaveFailed() {
+        Toast.makeText(this, R.string.settings_theme_save_failed, Toast.LENGTH_LONG).show()
+    }
+
     override fun openProjectLink(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, url.toUri()))
@@ -192,16 +213,8 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
                 .show()
         } else {
             preferences.edit { putBoolean("askedBluetooth", true) }
-            requestPermissions(arrayOf(Manifest.permission.BLUETOOTH_CONNECT), BLUETOOTH_PERMISSION)
+            nearbyPermission.launch(Manifest.permission.BLUETOOTH_CONNECT)
         }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        controller.refresh()
-        if (requestCode == BLUETOOTH_PERMISSION) RestoreService.requestCheck(this, null, "nearby_permission_returned")
-        notificationControl.permissionResult(requestCode)
-        management.refresh()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -258,6 +271,7 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
 
     override fun onDestroy() {
         closed = true
+        settings.close()
         management.close()
         notificationControl.close()
         controller.close()
@@ -265,7 +279,6 @@ internal class MainActivity : ComponentActivity(), LibraryPanel.Actions, Setting
     }
 
     private companion object {
-        const val BLUETOOTH_PERMISSION = 10
         val ASSOCIATION_CODES = AtomicInteger(1000)
     }
 }

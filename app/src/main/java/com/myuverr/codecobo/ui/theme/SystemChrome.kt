@@ -20,12 +20,12 @@ import androidx.core.view.WindowCompat
 
 fun prepareWindowTheme(activity: Activity) {
     WindowCompat.setDecorFitsSystemWindows(activity.window, false)
+    // The first frame follows the system scheme; the stored choice applies once Compose reads it.
     val systemDark = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
         Configuration.UI_MODE_NIGHT_YES
-    val dark = AppearanceStore.read(activity).isDark(systemDark)
-    val colors = if (dark) dynamicDarkColorScheme(activity) else dynamicLightColorScheme(activity)
+    val colors = if (systemDark) dynamicDarkColorScheme(activity) else dynamicLightColorScheme(activity)
     // A recreated window can draw before any ComposeView is attached.
-    applyWindowTheme(activity, dark, colors.surface)
+    applyWindowTheme(activity, systemDark, colors.surface)
 }
 
 @Composable

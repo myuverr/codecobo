@@ -39,9 +39,13 @@ internal fun LanguageChoices(
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
-    val supported = remember(context) {
+    val supported = remember(context, configuration) {
         val locales = requireNotNull(LocaleConfig(context).supportedLocales)
         (0 until locales.size()).map { locales[it] }.sortedBy { it.toLanguageTag() }
+    }
+    // Each name needs its own configuration context; resolve them once, not per recomposition.
+    val names = remember(context, configuration, supported) {
+        supported.associateWith { resolvedLanguageName(context, LocaleList(it)) }
     }
     val followsSystem = applicationLocales.isEmpty
     val systemDescription = if (followsSystem) {
@@ -58,7 +62,7 @@ internal fun LanguageChoices(
             val selected = !applicationLocales.isEmpty &&
                 LocaleList.matchesLanguageAndScript(applicationLocales[0], locale)
             ChoiceSheetItem(
-                resolvedLanguageName(context, locales), selected, "language-" + locale.toLanguageTag(),
+                names.getValue(locale), selected, "language-" + locale.toLanguageTag(),
                 enabled = enabled,
             ) { onSelected(locales) }
         }

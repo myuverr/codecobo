@@ -3,6 +3,7 @@
 package com.myuverr.codecobo.ui.theme
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
@@ -10,6 +11,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.State
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -31,7 +34,10 @@ internal fun CodecTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val darkTheme = preferredDarkTheme()
+    // The single observation point; Settings renders the same value through LocalThemePreference.
+    val preference by remember(context) { AppearanceStore.theme(context) }.collectAsState(initial = null)
+    val systemDark = isSystemInDarkTheme()
+    val darkTheme = preference?.isDark(systemDark) ?: systemDark
     val colors = if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     val motion = MotionScheme.expressive()
     // Animate page/window paint, not the scheme consumed by native color animations.
@@ -53,7 +59,7 @@ internal fun CodecTheme(
             LocalMinimumInteractiveComponentSize.current).height) + 12.dp
     }
     CompositionLocalProvider(LocalWorkbenchColors provides workbench, LocalAppTypeScale provides type,
-        LocalPageSurface provides surface,
+        LocalPageSurface provides surface, LocalThemePreference provides preference,
         LocalFloatingNavigationClearance provides navigationClearance) {
         MaterialExpressiveTheme(colorScheme = colors, typography = typography, motionScheme = motion, content = content)
     }
