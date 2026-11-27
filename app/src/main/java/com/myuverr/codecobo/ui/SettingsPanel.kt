@@ -4,7 +4,6 @@ package com.myuverr.codecobo.ui
 
 import android.app.LocaleManager
 import android.content.Context
-import android.os.LocaleList
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectableGroup
@@ -21,9 +20,13 @@ import com.myuverr.codecobo.ui.components.*
 import com.myuverr.codecobo.ui.management.ManagementData
 import com.myuverr.codecobo.ui.settings.*
 import com.myuverr.codecobo.ui.theme.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-internal class SettingsPanel(private val context: Context, private val actions: Actions) {
+internal class SettingsPanel(private val context: Context, private val actions: Actions) : AutoCloseable {
     interface Actions {
         fun nearby()
         fun mode(enabled: Boolean)
@@ -32,16 +35,20 @@ internal class SettingsPanel(private val context: Context, private val actions: 
         fun refreshManagement()
         fun copy(title: String, text: String)
         fun clearDiagnostics()
+        fun themeSaveFailed()
         fun openProjectLink(url: String)
     }
     private enum class Sheet { THEME, MODE, LANGUAGE, CLEAR_TRACE }
     private val localeManager = requireNotNull(context.getSystemService(LocaleManager::class.java))
+    // Writes must outlive the sheet that started them; only the activity ends this scope.
+    private val writes = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var state by mutableStateOf(SettingsState(
         applicationLocales = localeManager.applicationLocales, systemLocales = localeManager.systemLocales,
     ))
 
+    override fun close() { writes.cancel() }
+
     fun render(connection: ScreenState) { state = state.copy(connection = connection) }
-    fun renderData(data: ManagementData) { state = state.copy(data = data) }
     fun renderNotification(value: StatusNotificationControl.State) { state = state.copy(notification = value) }
     fun refreshLanguageFacts() {
         state = state.copy(applicationLocales = localeManager.applicationLocales, systemLocales = localeManager.systemLocales)
@@ -50,16 +57,17 @@ internal class SettingsPanel(private val context: Context, private val actions: 
     @Composable
     fun Content(
         route: SettingsRoute,
+        data: ManagementData,
         onBack: () -> Unit,
         onNavigate: (SettingsRoute) -> Unit,
         onOpenRecord: (String?, Int) -> Unit,
-        onOpenLicense: (String) -> Unit,
+        onOpenLicense: (LicenseDocument) -> Unit,
     ) {
-        val theme = rememberThemePreference()
+        val theme = LocalThemePreference.current
         var sheet by remember { mutableStateOf<Sheet?>(null) }
         when (route) {
             SettingsRoute.ROOT -> SettingsScreen(
-                state, theme, onNavigate, actions::notification,
+                state, data.version, theme, onNavigate, actions::notification,
                 onTheme = { sheet = Sheet.THEME },
                 onLanguage = {
                     if (state.canChangeLanguage) {
@@ -69,24 +77,23 @@ internal class SettingsPanel(private val context: Context, private val actions: 
                 },
             )
             SettingsRoute.ACCESS -> AccessScreen(
-                state, onBack = onBack, onNearby = actions::nearby,
+                state, data.batteryExempt, onBack = onBack, onNearby = actions::nearby,
                 onBattery = actions::batterySettings, onMode = { sheet = Sheet.MODE },
             )
-            SettingsRoute.RECORDS -> RecordsScreen(state, onBack, actions::refreshManagement) {
+            SettingsRoute.RECORDS -> RecordsScreen(data, onBack, actions::refreshManagement) {
                 onOpenRecord(it.address, it.id)
             }
             SettingsRoute.DIAGNOSTICS -> DiagnosticsScreen(
-                state, onBack, actions::refreshManagement,
+                data, onBack, actions::refreshManagement,
                 { actions.copy(context.getString(R.string.settings_diagnostics), it) },
                 { sheet = Sheet.CLEAR_TRACE },
             )
-            SettingsRoute.ABOUT -> AboutScreen(state, onBack, onNavigate, actions::openProjectLink)
-            SettingsRoute.LICENSES -> LicensesScreen(onBack, onOpenLicense) { onNavigate(SettingsRoute.NOTICES) }
-            SettingsRoute.PROJECT_LICENSE -> AssetTextScreen(
-                "licenses/MPL-2.0.txt", stringResource(R.string.about_project_license), onBack,
+            SettingsRoute.ABOUT -> AboutScreen(
+                data.version, onBack, onNavigate, actions::openProjectLink, onOpenLicense,
             )
+            SettingsRoute.LICENSES -> LicensesScreen(onBack, onOpenLicense) { onNavigate(SettingsRoute.NOTICES) }
             SettingsRoute.NOTICES -> AssetTextScreen(
-                "THIRD_PARTY_NOTICES.md", stringResource(R.string.about_notices), onBack,
+                ThirdPartyNoticesAsset, stringResource(R.string.about_notices), onBack,
             )
             SettingsRoute.PRIVACY -> PrivacyScreen(onBack)
         }
@@ -95,9 +102,11 @@ internal class SettingsPanel(private val context: Context, private val actions: 
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SettingsSheet(value: Sheet, theme: ThemePreference, dismiss: () -> Unit) {
+    private fun SettingsSheet(value: Sheet, theme: ThemePreference?, dismiss: () -> Unit) {
         val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
         val scope = rememberCoroutineScope()
+        // Every way out animates the same way; dropping the sheet first would cut it off.
+        val dismissSheet: () -> Unit = { scope.launch { sheetState.hide(); dismiss() } }
         ModalBottomSheet(sheetState = sheetState, onDismissRequest = dismiss) {
             Column(
                 Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 24.dp),
@@ -113,8 +122,11 @@ internal class SettingsPanel(private val context: Context, private val actions: 
                     Sheet.THEME -> Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         for (choice in ThemePreference.entries) {
                             ChoiceSheetItem(themeName(choice), choice == theme, "theme-" + choice.name) {
-                                dismiss()
-                                if (choice != theme) AppearanceStore.write(context, choice)
+                                dismissSheet()
+                                // Commit what the user picked; the shown value may lag behind the store.
+                                writes.launch {
+                                    if (!AppearanceStore.write(context, choice)) actions.themeSaveFailed()
+                                }
                             }
                         }
                     }
@@ -122,12 +134,12 @@ internal class SettingsPanel(private val context: Context, private val actions: 
                         val shizuku = state.connection?.shizukuMode() == true
                         ChoiceSheetItem(stringResource(R.string.access_mode_system), !shizuku, "mode-plain",
                             stringResource(R.string.settings_mode_plain_hint)) {
-                            dismiss()
+                            dismissSheet()
                             if (shizuku) actions.mode(false)
                         }
                         ChoiceSheetItem(stringResource(R.string.access_mode_shizuku), shizuku, "mode-shizuku",
                             stringResource(R.string.settings_mode_shizuku_hint)) {
-                            dismiss()
+                            dismissSheet()
                             if (!shizuku) actions.mode(true)
                         }
                     }
@@ -137,16 +149,16 @@ internal class SettingsPanel(private val context: Context, private val actions: 
                         if (localeManager.applicationLocales != locales) {
                             localeManager.applicationLocales = locales
                         }
-                        dismiss()
+                        dismissSheet()
                     }
                     Sheet.CLEAR_TRACE -> {
                         PageNote(stringResource(R.string.settings_trace_clear_hint))
-                        Button({ dismiss(); actions.clearDiagnostics() }, Modifier.fillMaxWidth().testTag("confirm-clear-diagnostics")) {
+                        Button({ dismissSheet(); actions.clearDiagnostics() }, Modifier.fillMaxWidth().testTag("confirm-clear-diagnostics")) {
                             Text(stringResource(R.string.restore_diagnostics_clear))
                         }
                     }
                 }
-                TextButton({ scope.launch { sheetState.hide(); dismiss() } }, Modifier.fillMaxWidth()) {
+                TextButton(dismissSheet, Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.home_close))
                 }
             }

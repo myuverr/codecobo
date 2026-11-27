@@ -47,9 +47,11 @@ import com.myuverr.codecobo.ui.home.HomeSubmission
 import com.myuverr.codecobo.ui.home.HomeViewModel
 import com.myuverr.codecobo.ui.home.SubmitTarget
 import com.myuverr.codecobo.ui.library.DeviceKey
+import com.myuverr.codecobo.ui.management.ManagementSnapshot
 import com.myuverr.codecobo.ui.settings.AssetTextScreen
+import com.myuverr.codecobo.ui.settings.LicenseDocumentKey
 import com.myuverr.codecobo.ui.settings.SettingsRoute
-import com.myuverr.codecobo.ui.settings.ShippedLicenses
+import com.myuverr.codecobo.ui.settings.licenseDocument
 import com.myuverr.codecobo.ui.theme.CodecTheme
 import kotlinx.serialization.Serializable
 
@@ -69,14 +71,12 @@ internal val MotionScheme.slideSpec: SpringSpec<Float>
         visibilityThreshold = 0.001f,
     )
 
-@Serializable
-private data class LicenseText(val file: String) : NavKey
-
 @Composable
 internal fun AppNavigation(
     home: HomeViewModel,
     library: LibraryPanel,
     settings: SettingsPanel,
+    management: ManagementSnapshot,
     refreshManagement: () -> Unit,
     onSelectDevice: (String) -> Unit,
     onSubmit: (HomeSubmission) -> Unit,
@@ -116,10 +116,11 @@ internal fun AppNavigation(
     val settingsPage: @Composable (SettingsRoute) -> Unit = { route ->
         settings.Content(
             route,
+            management.data,
             onBack = ::goBack,
             onNavigate = { backStack.add(it) },
             onOpenRecord = { address, id -> backStack.add(DeviceKey(address, id)) },
-            onOpenLicense = { backStack.add(LicenseText(it)) },
+            onOpenLicense = { backStack.add(LicenseDocumentKey(it.file)) },
         )
     }
 
@@ -143,7 +144,7 @@ internal fun AppNavigation(
                             TopLevelTrack(selectedTab.takeIf { showingTabs }, tabPosition) { page ->
                                 when (page) {
                                     TopLevelPage.CONTROL -> HomeScreen(homeState, homeActions)
-                                    TopLevelPage.HEADPHONES -> library.Root { backStack.add(it) }
+                                    TopLevelPage.HEADPHONES -> library.Root(management.data) { backStack.add(it) }
                                     TopLevelPage.SETTINGS -> settingsPage(SettingsRoute.ROOT)
                                 }
                             }
@@ -168,7 +169,7 @@ internal fun AppNavigation(
                     }
                     entry<DeviceKey> { device ->
                         val connectionChanged = stringResource(R.string.library_connection_changed)
-                        library.Details(device, onBack = ::goBack) { address ->
+                        library.Details(device, management.data, onBack = ::goBack) { address ->
                             when (val result = home.editSaved(address)) {
                                 is EditSavedResult.OpenHome -> {
                                     result.deviceToSelect?.let(onSelectDevice)
@@ -181,8 +182,9 @@ internal fun AppNavigation(
                         }
                     }
                     entry<SettingsRoute> { settingsPage(it) }
-                    entry<LicenseText> { license ->
-                        AssetTextScreen("licenses/${license.file}", ShippedLicenses.getValue(license.file), ::goBack)
+                    entry<LicenseDocumentKey> { license ->
+                        val document = licenseDocument(license.file)
+                        AssetTextScreen(document.assetPath, document.title, ::goBack)
                     }
                 },
             )

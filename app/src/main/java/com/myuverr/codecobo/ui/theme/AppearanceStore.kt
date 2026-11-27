@@ -3,11 +3,18 @@
 package com.myuverr.codecobo.ui.theme
 
 import android.content.Context
-import android.content.SharedPreferences
-import androidx.core.content.edit
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import com.myuverr.codecobo.platform.RestoreTrace
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 enum class ThemePreference {
     SYSTEM, LIGHT, DARK;
@@ -19,36 +26,38 @@ enum class ThemePreference {
     }
 }
 
-object AppearanceStore {
-    fun read(context: Context): ThemePreference = try {
-        ThemePreference.valueOf(preferences(context).getString("theme", "SYSTEM") ?: "SYSTEM")
-    } catch (_: IllegalArgumentException) {
-        ThemePreference.SYSTEM
-    } catch (_: ClassCastException) {
-        ThemePreference.SYSTEM
-    }
-
-    fun write(context: Context, preference: ThemePreference) {
-        preferences(context).edit { putString("theme", preference.name) }
-    }
-
-    internal fun preferences(context: Context) = context.applicationContext.getSharedPreferences("appearance", Context.MODE_PRIVATE)
+/** Null until the first stored value arrives; callers fall back to the system scheme. */
+internal val LocalThemePreference = staticCompositionLocalOf<ThemePreference?> {
+    error("Theme preference requires CodecTheme")
 }
 
-@Composable
-internal fun rememberThemePreference(): ThemePreference {
-    val context = LocalContext.current
-    var preference by remember(context) { mutableStateOf(AppearanceStore.read(context)) }
-    DisposableEffect(context) {
-        val preferences = AppearanceStore.preferences(context)
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == "theme") preference = AppearanceStore.read(context)
-        }
-        preferences.registerOnSharedPreferenceChangeListener(listener)
-        onDispose { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
-    }
-    return preference
-}
+private const val AppearanceStoreName = "appearance"
+private const val ThemeKey = "theme"
 
-@Composable
-internal fun preferredDarkTheme(): Boolean = rememberThemePreference().isDark(isSystemInDarkTheme())
+private val Context.appearanceStore: DataStore<Preferences> by preferencesDataStore(name = AppearanceStoreName)
+
+internal object AppearanceStore {
+    private val themeKey = stringPreferencesKey(ThemeKey)
+
+    fun theme(context: Context): Flow<ThemePreference> =
+        context.applicationContext.appearanceStore.data
+            .catch { error ->
+                if (error !is IOException) throw error
+                // An unreadable store must not block startup; keep the failure diagnosable.
+                RestoreTrace.failure(context, "", "appearance", "preferences.read_failed", error)
+                emit(emptyPreferences())
+            }
+            .map { preferences -> decode(preferences[themeKey]) }
+
+    /** False when the choice could not be stored; the caller keeps showing the previous one. */
+    suspend fun write(context: Context, preference: ThemePreference): Boolean = try {
+        context.applicationContext.appearanceStore.edit { it[themeKey] = preference.name }
+        true
+    } catch (error: IOException) {
+        RestoreTrace.failure(context, "", "appearance", "preferences.write_failed", error)
+        false
+    }
+
+    internal fun decode(stored: String?): ThemePreference =
+        ThemePreference.entries.firstOrNull { it.name == stored } ?: ThemePreference.SYSTEM
+}

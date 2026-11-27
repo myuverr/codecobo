@@ -2,7 +2,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools" tools:locale="en">
     <string name="app_name" translatable="false">Codecobo</string>
     <string name="access_mode_system">System access</string>
-    <string name="access_mode_shizuku" translatable="false">Shizuku API</string>
+    <string name="access_mode_shizuku" translatable="false">Shizuku</string>
     <string name="saved_profiles_section">Saved configurations</string>
     <string name="profile_delete">Delete configuration</string>
     <string name="profile_delete_explanation">This deletes the saved settings and turns off automatic restore for this device. This cannot be undone!</string>

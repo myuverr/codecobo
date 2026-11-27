@@ -90,7 +90,10 @@ internal fun LibraryScreen(
         if (data.profiles.isEmpty() && !data.loading && data.readError == null) {
             Card(shape = LibraryCardShape,
                 colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow)) {
-                SettingRow(stringResource(R.string.library_empty), stringResource(R.string.library_empty_hint))
+                SettingRow(
+                    title = stringResource(R.string.library_empty),
+                    description = stringResource(R.string.library_empty_hint),
+                )
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(LibraryBlockGap)) {
